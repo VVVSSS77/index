@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHAT IF — ถ้าซื้อตั้งแต่นั้น</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #06060e;
+  --surface: #0e0e1c;
+  --surface2: #14141f;
+  --surface3: #1c1c2e;
+  --border: rgba(255,215,0,0.07);
+  --border2: rgba(255,255,255,0.07);
+  --gold: #f5c518;
+  --gold2: #e6a800;
+  --gold-glow: rgba(245,197,24,0.12);
+  --gold-glow2: rgba(245,197,24,0.05);
+  --cyan: #00e5ff;
+  --green: #00e676;
+  --red: #ff3d57;
+  --purple: #a78bfa;
+  --text: #f0f0f8;
+  --text-dim: #c0c0d8;
+  --text-muted: #8888aa;
+  --r: 16px;
+  --r-sm: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Prompt',sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(245,197,24,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(245,197,24,0.025) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;z-index:0;
+}
+.wrap{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:0 20px 80px;}
+
+/* HEADER */
+.header{text-align:center;padding:56px 0 32px;}
+.logo{
+  font-family:'Bebas Neue',cursive;
+  font-size:clamp(80px,16vw,150px);
+  letter-spacing:0.1em;line-height:1;
+  background:linear-gradient(135deg,#f5c518 0%,#fff7c2 45%,#f5c518 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 50px rgba(245,197,24,0.25));
+}
+.tagline{font-size:18px;color:var(--text-dim);margin-top:8px;font-weight:400;letter-spacing:0.04em;}
+
+/* TABS */
+.tabs-wrap{text-align:center;margin-bottom:36px;}
+.tabs{display:inline-flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:5px;}
+.tab-btn{
+  padding:12px 28px;border-radius:50px;font-size:16px;
+  font-family:'Prompt',sans-serif;font-weight:600;
+  cursor:pointer;border:none;background:transparent;
+  color:var(--text-muted);transition:all .25s;
+}
+.tab-btn.active{background:var(--gold);color:#000;}
+.tab-btn.soon{position:relative;opacity:.6;cursor:default;}
+.tab-btn.soon::after{
+  content:'เร็วๆนี้';position:absolute;top:-9px;right:2px;
+  background:var(--cyan);color:#000;font-size:10px;
+  padding:2px 8px;border-radius:50px;font-weight:700;letter-spacing:0.05em;
+}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:28px;margin-bottom:16px;}
+.card-title{font-size:14px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;}
+
+/* ASSET CATEGORIES */
+.cat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.cat-btn{
+  padding:10px 20px;border-radius:8px;font-size:15px;
+  font-family:'Prompt',sans-serif;font-weight:500;cursor:pointer;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text-muted);transition:all .2s;
+}
+.cat-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-glow);}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:14px;}
+.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:17px;pointer-events:none;}
+.search-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);
+  padding:14px 18px 14px 48px;color:var(--text);font-size:16px;
+  font-family:'Prompt',sans-serif;outline:none;transition:border-color .2s;
+}
+.search-input:focus{border-color:var(--gold);}
+.search-input::placeholder{color:var(--text-muted);}
+
+/* ASSET GRID */
+.asset-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:10px;max-height:260px;overflow-y:auto;padding-right:4px;
+}
+.asset-grid::-webkit-scrollbar{width:4px;}
+.asset-grid::-webkit-scrollbar-track{background:transparent;}
+.asset-grid::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
+
+.asset-item{
+  display:flex;align-items:center;gap:10px;padding:12px;
+  border-radius:var(--r-sm);border:1px solid var(--border2);
+  background:var(--surface2);cursor:pointer;transition:all .18s;
+}
+.asset-item:hover{border-color:rgba(245,197,24,.25);background:var(--gold-glow);}
+.asset-item.selected{border-color:var(--gold);background:var(--gold-glow);}
+.asset-img{width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+.asset-emoji{width:30px;height:30px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.asset-sym{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.asset-nm{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.selected-pill{
+  display:none;align-items:center;gap:12px;margin-top:16px;
+  padding:14px 18px;background:var(--gold-glow);
+  border:1px solid rgba(245,197,24,.3);border-radius:var(--r-sm);
+  font-size:16px;
+}
+.selected-pill.show{display:flex;}
+
+/* INPUTS */
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:580px){.input-row{grid-template-columns:1fr;}}
+.input-group{display:flex;flex-direction:column;gap:8px;}
+.input-label{font-size:15px;color:var(--text-dim);font-weight:600;}
+.input-field{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);
+  padding:14px 16px;color:var(--text);font-size:17px;
+  font-family:'JetBrains Mono',monospace;outline:none;transition:border-color .2s;width:100%;
+}
+.input-field:focus{border-color:var(--gold);}
+.input-field::placeholder{color:var(--text-muted);}
+select.input-field{cursor:pointer;background-image:none;font-family:'Prompt',sans-serif;}
+
+/* DATE PRESETS */
+.presets-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:0;}
+.pre-btn{
+  padding:9px 18px;border-radius:8px;font-size:15px;
+  font-family:'Prompt',sans-serif;font-weight:500;cursor:pointer;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text-muted);transition:all .18s;
+}
+.pre-btn:hover,.pre-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-glow);}
+
+/* OPTIONAL SECTION */
+.opt-toggle{
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  color:var(--text-dim);font-size:16px;user-select:none;
+  transition:color .2s;
+}
+.opt-toggle:hover{color:var(--text);}
+.opt-icon{font-size:22px;color:var(--gold);transition:transform .2s;display:inline-block;}
+.opt-icon.open{transform:rotate(45deg);}
+.opt-body{display:none;margin-top:18px;}
+.opt-body.open{display:block;}
+
+/* CALC BUTTON */
+.calc-btn{
+  width:100%;padding:20px;
+  background:linear-gradient(135deg,#f5c518,#e6a800);
+  border:none;border-radius:var(--r);
+  font-size:20px;font-family:'Prompt',sans-serif;font-weight:700;
+  color:#000;cursor:pointer;letter-spacing:0.04em;
+  transition:all .25s;margin-top:8px;
+}
+.calc-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(245,197,24,.4);}
+.calc-btn:active{transform:translateY(0);}
+.calc-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* ERROR */
+.err-msg{
+  display:none;margin-top:14px;padding:16px 20px;
+  background:rgba(255,61,87,.1);border:1px solid rgba(255,61,87,.3);
+  border-radius:var(--r-sm);color:var(--red);font-size:16px;text-align:center;line-height:1.7;
+}
+.err-msg.show{display:block;}
+
+/* LOADING */
+.loading{display:none;text-align:center;padding:48px 20px;}
+.loading.show{display:block;}
+.spinner{
+  width:46px;height:46px;border:3px solid var(--border2);border-top-color:var(--gold);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading p{color:var(--text-muted);font-size:17px;}
+
+/* RESULTS */
+.results{display:none;margin-top:4px;}
+.results.show{display:block;}
+
+/* HERO */
+.hero-card{
+  background:linear-gradient(160deg,#0f0f1e 0%,#17173a 100%);
+  border:1px solid rgba(245,197,24,.18);border-radius:var(--r);
+  padding:44px 32px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden;
+}
+.hero-card::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:360px;height:360px;
+  background:radial-gradient(circle,rgba(245,197,24,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.h-invested-lbl{font-size:15px;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;font-weight:500;}
+.h-invested-val{font-family:'JetBrains Mono',monospace;font-size:24px;color:var(--text-dim);margin-bottom:20px;}
+.h-arrow{font-size:32px;color:var(--gold);margin-bottom:16px;display:block;animation:bounce 2s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+.h-now-lbl{font-size:15px;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;font-weight:500;}
+.h-now-val{
+  font-family:'JetBrains Mono',monospace;
+  font-size:clamp(38px,9vw,64px);font-weight:700;color:var(--gold);
+  line-height:1;margin-bottom:18px;
+}
+.pnl-badge{
+  display:inline-flex;align-items:center;gap:8px;padding:12px 26px;
+  border-radius:50px;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:700;
+}
+.pnl-badge.profit{background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.25);}
+.pnl-badge.loss{background:rgba(255,61,87,.12);color:var(--red);border:1px solid rgba(255,61,87,.25);}
+.h-coins{font-size:15px;color:var(--text-muted);margin-top:16px;line-height:1.7;}
+
+/* MCAP RESULT */
+.mcap-res{
+  display:none;background:linear-gradient(135deg,rgba(0,229,255,.05),rgba(0,229,255,.02));
+  border:1px solid rgba(0,229,255,.2);border-radius:var(--r);
+  padding:28px;text-align:center;margin-bottom:16px;
+}
+.mcap-res.show{display:block;}
+.mcap-lbl{font-size:14px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;font-weight:600;}
+.mcap-val{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:700;color:var(--cyan);}
+.mcap-sub{font-size:16px;color:var(--text-muted);margin-top:10px;}
+
+/* STATS */
+.stats-hdr{font-family:'Bebas Neue',cursive;font-size:34px;color:var(--gold);letter-spacing:.1em;margin:28px 0 16px;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-sm);
+  padding:22px;transition:all .25s;opacity:0;transform:translateY(16px);
+}
+.stat-card.visible{opacity:1;transform:translateY(0);}
+.stat-card:hover{border-color:rgba(245,197,24,.18);transform:translateY(-2px)!important;}
+.stat-ico{font-size:24px;margin-bottom:8px;}
+.stat-lbl{font-size:14px;color:var(--text-muted);margin-bottom:8px;line-height:1.6;font-weight:500;}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;line-height:1.3;}
+.stat-sub{font-size:13px;color:var(--text-muted);margin-top:6px;line-height:1.6;}
+
+/* BINANCE REF */
+.ref-section{
+  background:linear-gradient(135deg,#140f00,#0d0900);
+  border:1px solid rgba(245,197,24,.25);border-radius:var(--r);
+  padding:32px;text-align:center;margin-top:28px;
+}
+.ref-title{font-size:20px;font-weight:700;color:var(--gold);margin-bottom:8px;}
+.ref-sub{font-size:16px;color:var(--text-muted);margin-bottom:20px;line-height:1.8;}
+.ref-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#000;padding:16px 40px;border-radius:50px;
+  font-size:18px;font-weight:700;text-decoration:none;
+  font-family:'Prompt',sans-serif;transition:all .22s;
+}
+.ref-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,197,24,.4);}
+
+/* GRID EMPTY */
+.grid-empty{grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted);font-size:16px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="header">
+  <div class="logo">WHAT IF</div>
+  <p class="tagline">ถ้าคุณซื้อ... ตั้งแต่นั้น... ตอนนี้จะมีเท่าไหร่?</p>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active">🔍 WHAT IF</button>
+    <button class="tab-btn soon">📈 DCA Calculator</button>
+  </div>
+</div>
+
+<!-- ASSET SELECTOR -->
+<div class="card">
+  <div class="card-title">🪙 เลือกสินทรัพย์</div>
+  <div class="cat-row">
+    <button class="cat-btn active" onclick="setCategory('crypto',this)">🔗 Crypto</button>
+    <button class="cat-btn" onclick="setCategory('us',this)">🇺🇸 US Stocks</button>
+    <button class="cat-btn" onclick="setCategory('th',this)">🇹🇭 TH Stocks</button>
+    <button class="cat-btn" onclick="setCategory('metals',this)">✨ โลหะมีค่า</button>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="assetSearch" type="text" placeholder="ค้นหาชื่อหรือ symbol..." oninput="filterAssets(this.value)">
+  </div>
+  <div class="asset-grid" id="assetGrid"></div>
+  <div class="selected-pill" id="selPill">
+    <span id="selIcon"></span>
+    <span>เลือกแล้ว: <strong id="selName" style="color:var(--gold)"></strong></span>
+    <span style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="selPrice"></span>
+  </div>
+</div>
+
+<!-- AMOUNT & DATE -->
+<div class="card">
+  <div class="card-title">💰 จำนวนเงิน & วันที่</div>
+  <div class="input-row">
+    <div class="input-group">
+      <label class="input-label">ถ้าซื้อ (บาท)</label>
+      <input class="input-field" id="amtInput" type="number" placeholder="10000" min="1" oninput="chkBtn()">
+    </div>
+    <div class="input-group">
+      <label class="input-label">วันที่ซื้อ</label>
+      <input class="input-field" id="dateInput" type="date" onchange="clearPreset();chkBtn()">
+    </div>
+  </div>
+  <div class="presets-row" id="presetRow">
+    <span style="font-size:13px;color:var(--text-muted);align-self:center;">ลัด:</span>
+    <button class="pre-btn" onclick="setPreset(1,this)">1 ปี</button>
+    <button class="pre-btn" onclick="setPreset(2,this)">2 ปี</button>
+    <button class="pre-btn" onclick="setPreset(3,this)">3 ปี</button>
+    <button class="pre-btn" onclick="setPreset(5,this)">5 ปี</button>
+    <button class="pre-btn" onclick="setPreset(10,this)">10 ปี</button>
+    <button class="pre-btn" id="birthBtn" style="display:none;border-color:var(--gold);color:var(--gold);" onclick="setBirthDate(this)">🐣 วันเกิด</button>
+  </div>
+</div>
+
+<!-- MCAP (BTC only) -->
+<div class="card" id="mcapCard" style="display:none;">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span style="font-size:22px;">🏅</span>
+    <div>
+      <div style="font-size:15px;font-weight:700;color:var(--gold);">ถ้า Bitcoin = Market Cap ทองคำทั้งโลก</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-top:3px;">ทองคำมี Market Cap ~$18 ล้านล้าน USD</div>
+    </div>
+    <div style="margin-left:auto;text-align:right;">
+      <div style="font-size:13px;color:var(--text-muted);">เงินคุณจะเป็น</div>
+      <div style="font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--gold);" id="mcapGoldVal">—</div>
+    </div>
+  </div>
+</div>
+
+<button class="calc-btn" id="calcBtn" onclick="doCalc()" disabled>✨ คำนวณเลย</button>
+<div class="err-msg" id="errMsg"></div>
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <p id="loadingTxt">กำลังดึงข้อมูลราคา...</p>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="results">
+  <div class="hero-card">
+    <div class="h-invested-lbl">คุณลงทุนไป</div>
+    <div class="h-invested-val" id="rInv">—</div>
+    <span class="h-arrow">↓</span>
+    <div class="h-now-lbl">ตอนนี้กลายเป็น</div>
+    <div class="h-now-val" id="rNow">—</div>
+    <div><span class="pnl-badge" id="rPnl">—</span></div>
+    <div class="h-coins" id="rCoins"></div>
+  </div>
+
+  <div class="mcap-res" id="mcapRes">
+    <div class="mcap-lbl">🎯 ถ้า Market Cap ถึงเป้าหมาย</div>
+    <div class="mcap-val" id="rMcapVal">—</div>
+    <div class="mcap-sub" id="rMcapSub"></div>
+  </div>
+
+  <div class="stats-hdr">📊 วิเคราะห์เพิ่มเติม</div>
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:20px;margin-bottom:12px;">
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">📈 กราฟราคาตั้งแต่วันที่เลือกจนถึงปัจจุบัน</div>
+    <canvas id="priceChart" height="120"></canvas>
+  </div>
+  <div class="stats-grid" id="statsGrid"></div>
+</div>
+
+<!-- BINANCE REF -->
+<div class="ref-section">
+  <div class="ref-title">🚀 พร้อมลงจริงแล้วใช่ไหม?</div>
+  <div class="ref-sub">ซื้อเหรียญทั่วโลกได้ง่ายๆ ผ่าน Binance TH<br>ถูกกฎหมาย ปลอดภัย รองรับเงินบาทไทย โอนผ่าน PromptPay ได้เลย</div>
+  <a class="ref-btn" href="https://accounts.binance.th/th/register?ref=Z85ATO1K" target="_blank" rel="noopener">
+    🏦 สมัคร Binance TH ฟรี
+  </a>
+</div>
+
+<div style="margin-top:20px;padding:16px 20px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);">
+  <p style="font-size:13px;color:var(--text-muted);line-height:1.8;text-align:center;font-style:italic;">
+    *คริปโทเคอร์เรนซีและโทเคนดิจิทัลมีความเสี่ยงสูง ท่านอาจสูญเสียเงินลงทุนได้ทั้งจำนวน โปรดศึกษาและลงทุนให้เหมาะสมกับระดับความเสี่ยงที่ยอมรับได้*
+  </p>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ========== CONSTANTS ==========
+const THAI_INFLATION = 0.03;
+const BENCHMARK_RETURN = 0.07;
+const CONDO_BKK = 3_000_000;
+const HOUSE_BKK = 6_500_000;
+
+const US_STOCKS = [
+  {id:'AAPL',symbol:'AAPL',name:'Apple',icon:'🍎',type:'stock',cur:'USD'},
+  {id:'MSFT',symbol:'MSFT',name:'Microsoft',icon:'🪟',type:'stock',cur:'USD'},
+  {id:'NVDA',symbol:'NVDA',name:'NVIDIA',icon:'🎮',type:'stock',cur:'USD'},
+  {id:'GOOGL',symbol:'GOOGL',name:'Google',icon:'🔍',type:'stock',cur:'USD'},
+  {id:'AMZN',symbol:'AMZN',name:'Amazon',icon:'📦',type:'stock',cur:'USD'},
+  {id:'META',symbol:'META',name:'Meta',icon:'👓',type:'stock',cur:'USD'},
+  {id:'TSLA',symbol:'TSLA',name:'Tesla',icon:'⚡',type:'stock',cur:'USD'},
+  {id:'NFLX',symbol:'NFLX',name:'Netflix',icon:'🎬',type:'stock',cur:'USD'},
+  {id:'JPM',symbol:'JPM',name:'JPMorgan',icon:'🏦',type:'stock',cur:'USD'},
+  {id:'SPY',symbol:'SPY',name:'S&P 500 ETF',icon:'📈',type:'stock',cur:'USD'},
+  {id:'QQQ',symbol:'QQQ',name:'Nasdaq ETF',icon:'💻',type:'stock',cur:'USD'},
+  {id:'BRK-B',symbol:'BRK-B',name:'Berkshire',icon:'💰',type:'stock',cur:'USD'},
+];
+const TH_STOCKS = [
+  {id:'PTT.BK',symbol:'PTT.BK',name:'PTT',icon:'⛽',type:'stock',cur:'THB'},
+  {id:'KBANK.BK',symbol:'KBANK.BK',name:'Kasikorn Bank',icon:'🏧',type:'stock',cur:'THB'},
+  {id:'SCB.BK',symbol:'SCB.BK',name:'SCB',icon:'🏦',type:'stock',cur:'THB'},
+  {id:'AOT.BK',symbol:'AOT.BK',name:'ท่าอากาศยานไทย',icon:'✈️',type:'stock',cur:'THB'},
+  {id:'CPALL.BK',symbol:'CPALL.BK',name:'CP ALL',icon:'🏪',type:'stock',cur:'THB'},
+  {id:'ADVANC.BK',symbol:'ADVANC.BK',name:'ADVANC (AIS)',icon:'📱',type:'stock',cur:'THB'},
+  {id:'DELTA.BK',symbol:'DELTA.BK',name:'Delta Electronics',icon:'⚙️',type:'stock',cur:'THB'},
+  {id:'BEM.BK',symbol:'BEM.BK',name:'BEM (MRT)',icon:'🚇',type:'stock',cur:'THB'},
+  {id:'TRUE.BK',symbol:'TRUE.BK',name:'True Corporation',icon:'📡',type:'stock',cur:'THB'},
+  {id:'SET50.BK',symbol:'^SET50',name:'SET50 Index',icon:'🇹🇭',type:'stock',cur:'THB'},
+];
+const METALS = [
+  {id:'GC=F',symbol:'GOLD',name:'ทองคำ (Gold)',icon:'🥇',type:'metal',cur:'USD',created:'1975-01-02'},
+  {id:'SLV',symbol:'SILVER',name:'เงิน (Silver)',icon:'🥈',type:'metal',cur:'USD',created:'2006-04-28'},
+];
+
+const US_STOCKS_WITH_IPO = {
+  'AAPL':'1980-12-12','MSFT':'1986-03-13','NVDA':'1999-01-22','GOOGL':'2004-08-19',
+  'AMZN':'1997-05-15','META':'2012-05-18','TSLA':'2010-06-29','NFLX':'2002-05-23',
+  'JPM':'1969-03-05','SPY':'1993-01-22','QQQ':'1999-03-10','BRK-B':'1996-05-09',
+};
+
+const CRYPTOS = [
+  {id:'bitcoin',symbol:'BTC',binance:'BTCUSDT',name:'Bitcoin',icon:'₿',type:'crypto',cur:'THB',created:'2009-01-03',binanceStart:'2017-08-17'},
+  {id:'ethereum',symbol:'ETH',binance:'ETHUSDT',name:'Ethereum',icon:'Ξ',type:'crypto',cur:'THB',created:'2015-07-30',binanceStart:'2017-08-17'},
+  {id:'binancecoin',symbol:'BNB',binance:'BNBUSDT',name:'BNB',icon:'🔶',type:'crypto',cur:'THB',created:'2017-07-01',binanceStart:'2017-11-06'},
+  {id:'solana',symbol:'SOL',binance:'SOLUSDT',name:'Solana',icon:'◎',type:'crypto',cur:'THB',created:'2020-03-16',binanceStart:'2020-09-14'},
+  {id:'ripple',symbol:'XRP',binance:'XRPUSDT',name:'XRP',icon:'✕',type:'crypto',cur:'THB',created:'2013-01-01',binanceStart:'2018-05-04'},
+  {id:'dogecoin',symbol:'DOGE',binance:'DOGEUSDT',name:'Dogecoin',icon:'🐕',type:'crypto',cur:'THB',created:'2013-12-08',binanceStart:'2019-07-05'},
+  {id:'cardano',symbol:'ADA',binance:'ADAUSDT',name:'Cardano',icon:'₳',type:'crypto',cur:'THB',created:'2017-09-29',binanceStart:'2018-04-17'},
+  {id:'avalanche-2',symbol:'AVAX',binance:'AVAXUSDT',name:'Avalanche',icon:'🔺',type:'crypto',cur:'THB',created:'2020-09-22',binanceStart:'2020-09-22'},
+  {id:'the-open-network',symbol:'TON',binance:'TONUSDT',name:'Toncoin',icon:'💎',type:'crypto',cur:'THB',created:'2021-03-01',binanceStart:'2023-07-26'},
+  {id:'shiba-inu',symbol:'SHIB',binance:'SHIBUSDT',name:'Shiba Inu',icon:'🐕',type:'crypto',cur:'THB',created:'2020-07-31',binanceStart:'2021-05-10'},
+  {id:'polkadot',symbol:'DOT',binance:'DOTUSDT',name:'Polkadot',icon:'●',type:'crypto',cur:'THB',created:'2020-08-19',binanceStart:'2020-08-18'},
+  {id:'chainlink',symbol:'LINK',binance:'LINKUSDT',name:'Chainlink',icon:'🔗',type:'crypto',cur:'THB',created:'2017-09-19',binanceStart:'2017-10-23'},
+  {id:'uniswap',symbol:'UNI',binance:'UNIUSDT',name:'Uniswap',icon:'🦄',type:'crypto',cur:'THB',created:'2020-09-16',binanceStart:'2020-09-17'},
+  {id:'litecoin',symbol:'LTC',binance:'LTCUSDT',name:'Litecoin',icon:'Ł',type:'crypto',cur:'THB',created:'2011-10-07',binanceStart:'2017-12-13'},
+  {id:'matic-network',symbol:'MATIC',binance:'MATICUSDT',name:'Polygon',icon:'🔷',type:'crypto',cur:'THB',created:'2019-04-26',binanceStart:'2019-04-26'},
+  {id:'tron',symbol:'TRX',binance:'TRXUSDT',name:'TRON',icon:'♦',type:'crypto',cur:'THB',created:'2017-09-14',binanceStart:'2017-09-14'},
+  {id:'stellar',symbol:'XLM',binance:'XLMUSDT',name:'Stellar',icon:'⭐',type:'crypto',cur:'THB',created:'2014-07-31',binanceStart:'2018-06-14'},
+  {id:'cosmos',symbol:'ATOM',binance:'ATOMUSDT',name:'Cosmos',icon:'⚛',type:'crypto',cur:'THB',created:'2019-03-14',binanceStart:'2019-03-14'},
+  {id:'near',symbol:'NEAR',binance:'NEARUSDT',name:'NEAR Protocol',icon:'Ⓝ',type:'crypto',cur:'THB',created:'2020-08-11',binanceStart:'2020-10-15'},
+  {id:'aave',symbol:'AAVE',binance:'AAVEUSDT',name:'Aave',icon:'👻',type:'crypto',cur:'THB',created:'2020-10-02',binanceStart:'2020-10-15'},
+  {id:'arbitrum',symbol:'ARB',binance:'ARBUSDT',name:'Arbitrum',icon:'🔵',type:'crypto',cur:'THB',created:'2023-03-23',binanceStart:'2023-03-23'},
+  {id:'sui',symbol:'SUI',binance:'SUIUSDT',name:'Sui',icon:'💧',type:'crypto',cur:'THB',created:'2023-05-03',binanceStart:'2023-05-03'},
+  {id:'pepe',symbol:'PEPE',binance:'PEPEUSDT',name:'Pepe',icon:'🐸',type:'crypto',cur:'THB',created:'2023-04-14',binanceStart:'2023-05-05'},
+  {id:'hyperliquid',symbol:'HYPE',binance:'HYPEUSDT',name:'Hyperliquid',icon:'🌊',type:'crypto',cur:'THB',created:'2024-11-29',binanceStart:'2024-12-05'},
+];
+
+// ========== HISTORICAL PRICES (before Binance, USD/unit, end-of-month approx) ==========
+const PRE_BINANCE = {
+  bitcoin: {
+    '2010-07':0.08,'2010-08':0.07,'2010-09':0.06,'2010-10':0.10,'2010-11':0.24,'2010-12':0.23,
+    '2011-01':0.31,'2011-02':0.81,'2011-03':0.85,'2011-04':1.00,'2011-05':8.56,'2011-06':15.40,
+    '2011-07':14.00,'2011-08':10.25,'2011-09':7.08,'2011-10':3.53,'2011-11':2.31,'2011-12':4.25,
+    '2012-01':6.18,'2012-02':4.87,'2012-03':4.89,'2012-04':5.03,'2012-05':5.02,'2012-06':6.49,
+    '2012-07':7.92,'2012-08':10.88,'2012-09':12.36,'2012-10':10.87,'2012-11':12.31,'2012-12':13.45,
+    '2013-01':20.40,'2013-02':28.84,'2013-03':92.04,'2013-04':139.00,'2013-05':130.00,'2013-06':97.00,
+    '2013-07':88.00,'2013-08':112.00,'2013-09':135.00,'2013-10':196.00,'2013-11':1063.00,'2013-12':732.00,
+    '2014-01':800.00,'2014-02':550.00,'2014-03':480.00,'2014-04':456.00,'2014-05':560.00,'2014-06':626.00,
+    '2014-07':580.00,'2014-08':505.00,'2014-09':387.00,'2014-10':338.00,'2014-11':376.00,'2014-12':320.00,
+    '2015-01':272.00,'2015-02':254.00,'2015-03':247.00,'2015-04':236.00,'2015-05':233.00,'2015-06':247.00,
+    '2015-07':294.00,'2015-08':228.00,'2015-09':236.00,'2015-10':314.00,'2015-11':362.00,'2015-12':431.00,
+    '2016-01':379.00,'2016-02':437.00,'2016-03':415.00,'2016-04':450.00,'2016-05':534.00,'2016-06':651.00,
+    '2016-07':675.00,'2016-08':572.00,'2016-09':614.00,'2016-10':704.00,'2016-11':738.00,'2016-12':963.00,
+    '2017-01':1003.00,'2017-02':1190.00,'2017-03':1070.00,'2017-04':1347.00,'2017-05':2305.00,
+    '2017-06':2492.00,'2017-07':2875.00,
+  },
+  ethereum: {
+    '2015-08':2.83,'2015-09':1.24,'2015-10':0.75,'2015-11':1.06,'2015-12':0.93,
+    '2016-01':0.95,'2016-02':5.87,'2016-03':11.80,'2016-04':10.10,'2016-05':14.80,
+    '2016-06':12.50,'2016-07':11.30,'2016-08':11.30,'2016-09':12.50,'2016-10':11.30,
+    '2016-11':9.60,'2016-12':7.24,
+    '2017-01':9.84,'2017-02':13.30,'2017-03':50.64,'2017-04':84.29,'2017-05':220.00,
+    '2017-06':319.00,'2017-07':209.00,
+  },
+  litecoin: {
+    '2011-10':0.30,'2011-11':0.38,'2011-12':4.00,
+    '2012-01':3.00,'2012-03':3.50,'2012-06':2.50,'2012-09':2.80,'2012-12':3.60,
+    '2013-01':3.80,'2013-03':11.00,'2013-04':22.00,'2013-05':3.20,'2013-07':2.50,
+    '2013-10':3.90,'2013-11':24.00,'2013-12':22.00,
+    '2014-01':17.00,'2014-03':12.00,'2014-06':9.00,'2014-09':4.50,'2014-12':2.90,
+    '2015-01':1.80,'2015-04':1.40,'2015-07':3.00,'2015-09':2.80,'2015-12':3.40,
+    '2016-01':3.50,'2016-04':4.20,'2016-07':3.80,'2016-08':6.00,'2016-10':5.00,'2016-12':4.50,
+    '2017-01':4.20,'2017-02':4.10,'2017-03':5.50,'2017-04':12.00,'2017-05':26.00,
+    '2017-06':45.00,'2017-07':45.00,'2017-08':56.00,'2017-09':66.00,'2017-10':56.00,'2017-11':90.00,
+  },
+  ripple: {
+    '2013-01':0.0054,'2013-05':0.046,'2013-10':0.006,
+    '2014-01':0.030,'2014-04':0.065,'2014-07':0.010,'2014-10':0.014,'2014-12':0.020,
+    '2015-01':0.015,'2015-04':0.006,'2015-07':0.005,'2015-10':0.007,'2015-12':0.006,
+    '2016-01':0.006,'2016-04':0.007,'2016-07':0.007,'2016-10':0.008,'2016-12':0.007,
+    '2017-01':0.007,'2017-03':0.018,'2017-05':0.27,'2017-06':0.25,'2017-07':0.18,
+    '2017-08':0.18,'2017-09':0.24,'2017-10':0.20,'2017-11':0.24,'2017-12':2.40,
+    '2018-01':1.60,'2018-02':0.94,'2018-03':0.57,'2018-04':0.75,
+  },
+  dogecoin: {
+    '2013-12':0.0002,'2014-01':0.0026,'2014-03':0.0011,'2014-06':0.0007,'2014-09':0.0004,'2014-12':0.0002,
+    '2015-01':0.0001,'2015-06':0.0001,'2015-12':0.0001,
+    '2016-01':0.0001,'2016-06':0.0002,'2016-12':0.0002,
+    '2017-01':0.0002,'2017-06':0.0022,'2017-09':0.0021,'2017-12':0.0057,
+    '2018-01':0.013,'2018-03':0.006,'2018-06':0.0027,'2018-09':0.0055,'2018-12':0.0021,
+    '2019-01':0.0021,'2019-03':0.0025,'2019-05':0.0036,'2019-06':0.0030,
+  },
+  stellar: {
+    '2014-07':0.0036,'2014-09':0.0055,'2014-12':0.0040,
+    '2015-01':0.0050,'2015-06':0.0014,'2015-12':0.0014,
+    '2016-01':0.0026,'2016-06':0.0027,'2016-12':0.0025,
+    '2017-01':0.0024,'2017-03':0.0021,'2017-05':0.0094,'2017-07':0.030,'2017-09':0.019,
+    '2017-12':0.26,'2018-01':0.49,'2018-03':0.20,'2018-05':0.27,
+  },
+  cardano: {
+    '2017-09':0.020,'2017-10':0.028,'2017-11':0.076,'2017-12':0.73,
+    '2018-01':1.20,'2018-02':0.29,'2018-03':0.24,
+  },
+  solana: {
+    '2020-03':1.00,'2020-04':0.80,'2020-05':0.75,'2020-06':1.40,'2020-07':2.40,'2020-08':3.50,
+  },
+  'shiba-inu': {
+    '2020-08':0.000000001,'2020-09':0.000000001,'2020-10':0.000000001,'2020-11':0.000000015,
+    '2020-12':0.000000014,'2021-01':0.000000008,'2021-02':0.000000009,
+    '2021-03':0.000000008,'2021-04':0.0000000183,
+  },
+  'the-open-network': {
+    '2021-03':0.50,'2021-04':0.55,'2021-05':1.00,'2021-06':1.40,'2021-07':1.10,
+    '2021-08':1.20,'2021-09':2.60,'2021-10':4.50,'2021-11':4.80,'2021-12':4.00,
+    '2022-01':2.80,'2022-02':3.40,'2022-03':3.30,'2022-04':1.90,'2022-05':0.85,
+    '2022-06':1.00,'2022-07':1.30,'2022-08':1.50,'2022-09':1.80,'2022-10':1.70,
+    '2022-11':1.65,'2022-12':2.20,
+    '2023-01':2.20,'2023-02':2.50,'2023-03':2.40,'2023-04':2.40,'2023-05':1.90,
+    '2023-06':1.70,'2023-07':1.60,
+  },
+  hyperliquid: {
+    '2024-11':3.50,
+  },
+  pepe: {
+    '2023-04':0.0000016,
+  },
+};
+const BINANCE_START_DEFAULT = new Date('2017-08-01');
+
+// helper: look up pre-Binance price
+function getPreBinanceUSD(coinId, date) {
+  const table = PRE_BINANCE[coinId];
+  if (!table) return null;
+  const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+  // exact month first, then scan nearby months
+  if (table[key]) return table[key];
+  // try up to 2 months forward (handle edge dates)
+  for (let i = 1; i <= 2; i++) {
+    const d2 = new Date(date); d2.setMonth(d2.getMonth() + i);
+    const k2 = `${d2.getFullYear()}-${String(d2.getMonth()+1).padStart(2,'0')}`;
+    if (table[k2]) return table[k2];
+  }
+  return null;
+}
+const S = {
+  cat: 'crypto',
+  displayedAssets: [],
+  selected: null,
+  usdThb: 35,
+  optOpen: false,
+};
+
+// ========== INIT ==========
+setupDate();
+renderAssets();
+
+function setupDate() {
+  const y = new Date(); y.setFullYear(y.getFullYear()-1);
+  document.getElementById('dateInput').value = y.toISOString().split('T')[0];
+  const max = new Date(); max.setDate(max.getDate()-2);
+  document.getElementById('dateInput').max = max.toISOString().split('T')[0];
+  document.getElementById('dateInput').min = '2010-01-01';
+}
+
+// ========== CATEGORY ==========
+function setCategory(cat, btn) {
+  S.cat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('assetSearch').value = '';
+  renderAssets();
+}
+
+function filterAssets(q) { renderAssets(q); }
+
+function renderAssets(q='') {
+  let arr = [];
+  if(S.cat==='crypto') arr = CRYPTOS;
+  else if(S.cat==='us') arr = US_STOCKS;
+  else if(S.cat==='th') arr = TH_STOCKS;
+  else arr = METALS;
+
+  if(q) {
+    const lq = q.toLowerCase();
+    arr = arr.filter(a => a.name.toLowerCase().includes(lq)||a.symbol.toLowerCase().includes(lq));
+  }
+  S.displayedAssets = arr;
+
+  const g = document.getElementById('assetGrid');
+  if(!arr.length){g.innerHTML='<div class="grid-empty">ไม่พบสินทรัพย์</div>';return;}
+
+  g.innerHTML = arr.map((a,i) => {
+    const sel = S.selected?.id===a.id ? ' selected' : '';
+    const ico = a.icon && a.icon.startsWith('http')
+      ? `<img class="asset-img" src="${a.icon}" onerror="this.parentNode.innerHTML='<span class=\\'asset-emoji\\'>${a.symbol[0]}</span>'">`
+      : `<span class="asset-emoji">${a.icon||'💰'}</span>`;
+    return `<div class="asset-item${sel}" onclick="pickAsset(${i})">
+      ${ico}
+      <div style="min-width:0">
+        <div class="asset-sym">${a.symbol}</div>
+        <div class="asset-nm">${a.name}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pickAsset(idx) {
+  S.selected = S.displayedAssets[idx];
+  document.querySelectorAll('.asset-item').forEach((el,i)=>el.classList.toggle('selected',i===idx));
+  const pill = document.getElementById('selPill');
+  pill.classList.add('show');
+  const a = S.selected;
+  const ico = a.icon&&a.icon.startsWith('http')
+    ? `<img src="${a.icon}" style="width:22px;height:22px;border-radius:50%">`
+    : `<span style="font-size:18px">${a.icon||'💰'}</span>`;
+  document.getElementById('selIcon').innerHTML = ico;
+  document.getElementById('selName').textContent = `${a.name} (${a.symbol})`;
+  document.getElementById('selPrice').textContent = '';
+
+  // Show birth date button
+  const birthBtn = document.getElementById('birthBtn');
+  const createdDate = a.created || US_STOCKS_WITH_IPO[a.id];
+  if (createdDate) {
+    const d = new Date(createdDate);
+    const label = a.type==='stock' ? '📈 IPO' : '🐣 วันเกิด';
+    const dateDisplay = d.toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'});
+    birthBtn.textContent = `${label} ${dateDisplay}`;
+    birthBtn.style.display = 'inline-block';
+    birthBtn.dataset.date = createdDate;
+  } else {
+    birthBtn.style.display = 'none';
+  }
+
+  // Show MCap card only for BTC
+  document.getElementById('mcapCard').style.display = a.id==='bitcoin' ? 'block' : 'none';
+
+  chkBtn();
+}
+
+function setBirthDate(btn) {
+  document.querySelectorAll('.pre-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dateInput').value = btn.dataset.date;
+  chkBtn();
+}
+
+// ========== HELPERS ==========
+function setPreset(yrs, btn) {
+  document.querySelectorAll('.pre-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = new Date(); d.setFullYear(d.getFullYear()-yrs);
+  document.getElementById('dateInput').value = d.toISOString().split('T')[0];
+  chkBtn();
+}
+function clearPreset(){ document.querySelectorAll('.pre-btn').forEach(b=>b.classList.remove('active')); }
+function chkBtn(){
+  const ok = S.selected && document.getElementById('amtInput').value>0 && document.getElementById('dateInput').value;
+  document.getElementById('calcBtn').disabled = !ok;
+}
+function toggleOpt(){
+  S.optOpen = !S.optOpen;
+  document.getElementById('optBody').classList.toggle('open',S.optOpen);
+  document.getElementById('optIcon').classList.toggle('open',S.optOpen);
+}
+
+// MCap reference presets
+document.getElementById('mcapRef').addEventListener('change',function(){
+  const v = this.value;
+  const map = {btc:1900000000000,eth:380000000000,gold:18000000000000};
+  if(map[v]) document.getElementById('targetMcap').value = map[v];
+});
+
+// ========== API CALLS ==========
+const BINANCE = 'https://api.binance.com';
+
+// Binance: free, no key, CORS enabled
+async function bnFetch(path) {
+  const r = await fetch(BINANCE + path);
+  if (!r.ok) throw new Error('Binance API error ' + r.status);
+  return r.json();
+}
+
+// Yahoo Finance via Vercel serverless proxy (no CORS issue)
+async function yahooFetch(sym, from, to) {
+  const target = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&period1=${from}&period2=${to}&events=history`;
+  const r = await fetch(`/api/proxy?url=${encodeURIComponent(target)}`);
+  if (!r.ok) throw new Error(`ไม่สามารถโหลดข้อมูล ${sym}`);
+  const data = await r.json();
+  if (!data.chart?.result?.[0]) throw new Error(`ไม่พบข้อมูล ${sym}`);
+  return data;
+}
+
+async function getExRate() {
+  try {
+    const r = await fetch('https://api.frankfurter.app/latest?from=USD&to=THB');
+    const d = await r.json();
+    S.usdThb = d.rates?.THB || 35;
+  } catch {
+    try {
+      const r = await fetch('https://open.er-api.com/v6/latest/USD');
+      const d = await r.json();
+      S.usdThb = d.rates?.THB || 35;
+    } catch { S.usdThb = 35; }
+  }
+}
+
+async function getExRate(){
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/USD');
+    const d = await r.json();
+    S.usdThb = d.rates?.THB || 35;
+  } catch { S.usdThb = 35; }
+}
+
+// ========== MAIN CALCULATION ==========
+async function doCalc(){
+  const a = S.selected;
+  const amt = parseFloat(document.getElementById('amtInput').value);
+  const dateStr = document.getElementById('dateInput').value;
+  if(!a||!amt||!dateStr) return;
+
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('errMsg').classList.remove('show');
+
+  try {
+    setLoading('กำลังดึงอัตราแลกเปลี่ยน...');
+    await getExRate();
+
+    const buyDate = new Date(dateStr);
+    const now = new Date();
+    const days = Math.floor((now-buyDate)/86400000);
+    if(days<1) throw new Error('กรุณาเลือกวันที่ผ่านมาแล้ว');
+
+    // Check if date is before asset creation
+    const createdStr = a.created || US_STOCKS_WITH_IPO[a.id];
+    if (createdStr) {
+      const createdDate = new Date(createdStr);
+      if (buyDate < createdDate) {
+        const fmt = createdDate.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+        const label = a.type==='stock' ? 'IPO' : 'ถูกสร้าง';
+        throw new Error(`${a.name} ยังไม่${label}ในช่วงนั้น 🐣\n${a.name} ${label}วันที่ ${fmt}`);
+      }
+    }
+
+    let histPriceTHB, curPriceTHB, athPriceTHB, curMcapUSD;
+    let priceHistory = []; // [[ts, priceTHB]]
+
+    if(a.type==='crypto'){
+      setLoading('กำลังดึงราคา '+a.name+' จาก Binance...');
+      const sym = a.binance;
+      const endMs = now.getTime();
+
+      // Get current price (always from Binance)
+      const curTicker = await bnFetch(`/api/v3/ticker/price?symbol=${sym}`);
+      curPriceTHB = parseFloat(curTicker.price) * S.usdThb;
+
+      const isPreBinance = buyDate < new Date(a.binanceStart || '2017-08-17');
+
+      if (isPreBinance) {
+        // Use hardcoded monthly price
+        const histPriceUSD = getPreBinanceUSD(a.id, buyDate);
+        if (!histPriceUSD) throw new Error(
+          `ไม่มีข้อมูลราคา ${a.name} ก่อน Binance สำหรับช่วงนี้\nBTC รองรับตั้งแต่ ก.ค. 2010 | ETH ตั้งแต่ ส.ค. 2015`
+        );
+        histPriceTHB = histPriceUSD * S.usdThb;
+
+        // Build price history: pre-Binance monthly (hardcoded) + Binance daily
+        const table = PRE_BINANCE[a.id] || {};
+        const bnStart = new Date(a.binanceStart || '2017-08-17');
+        const preHistory = Object.entries(table)
+          .map(([k, p]) => {
+            const [y, m] = k.split('-').map(Number);
+            return [new Date(y, m-1, 1).getTime(), p * S.usdThb];
+          })
+          .filter(([ts]) => ts >= buyDate.getTime())
+          .sort((a, b) => a[0] - b[0]);
+
+        const bnKlines = await bnFetch(
+          `/api/v3/klines?symbol=${sym}&interval=1d&startTime=${bnStart.getTime()}&endTime=${endMs}&limit=1000`
+        );
+        const bnHistory = bnKlines.map(k => [k[0], parseFloat(k[4]) * S.usdThb]);
+        priceHistory = [...preHistory, ...bnHistory];
+
+        // ATH = highest from hardcoded + Binance highs
+        const preATH = Math.max(...preHistory.map(p => p[1]));
+        const bnATH = bnKlines.length ? Math.max(...bnKlines.map(k => parseFloat(k[2]))) * S.usdThb : 0;
+        athPriceTHB = Math.max(preATH, bnATH);
+
+      } else {
+        // Normal Binance flow
+        const startMs = buyDate.getTime();
+        const [histKlines, allKlines] = await Promise.all([
+          bnFetch(`/api/v3/klines?symbol=${sym}&interval=1d&startTime=${startMs}&endTime=${startMs+172800000}&limit=3`),
+          bnFetch(`/api/v3/klines?symbol=${sym}&interval=1d&startTime=${startMs}&endTime=${endMs}&limit=1000`),
+        ]);
+        if (!histKlines?.length) throw new Error('ไม่พบราคา ณ วันที่เลือก');
+        histPriceTHB = parseFloat(histKlines[0][4]) * S.usdThb;
+        athPriceTHB = Math.max(...allKlines.map(k => parseFloat(k[2]))) * S.usdThb;
+        priceHistory = allKlines.map(k => [k[0], parseFloat(k[4]) * S.usdThb]);
+      }
+
+      // Market cap (optional, try quietly)
+      try {
+        const cgR = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${a.id}&vs_currencies=usd&include_market_cap=true`);
+        if(cgR.ok){ const d=await cgR.json(); curMcapUSD=d[a.id]?.usd_market_cap||null; }
+      } catch {}
+
+    } else {
+      setLoading('กำลังดึงข้อมูล '+a.symbol+'...');
+      const from = Math.floor(buyDate/1000);
+      const to = Math.floor(now/1000);
+      const data = await yahooFetch(a.symbol, from, to);
+      const res = data.chart?.result?.[0];
+      if(!res) throw new Error('ไม่พบข้อมูลสำหรับ '+a.symbol);
+      const ts = res.timestamp || res.timestamps || [];
+      const closes = res.indicators?.quote?.[0]?.close || [];
+      if(!ts.length||!closes.length) throw new Error('ข้อมูลไม่สมบูรณ์');
+
+      const mult = a.cur==='USD' ? S.usdThb : 1;
+      histPriceTHB = (closes[0]||closes.find(c=>c)) * mult;
+      curPriceTHB = closes.filter(Boolean).slice(-1)[0] * mult;
+      athPriceTHB = Math.max(...closes.filter(Boolean)) * mult;
+      priceHistory = ts.map((t,i)=>[t*1000, (closes[i]||null)*mult]).filter(p=>p[1]&&p[1]>0);
+    }
+
+    if(!histPriceTHB||!curPriceTHB) throw new Error('ข้อมูลราคาไม่ครบ');
+
+    // ===== CORE =====
+    const coins = amt / histPriceTHB;
+    const curVal = coins * curPriceTHB;
+    const pnlAmt = curVal - amt;
+    const pnlPct = (pnlAmt/amt)*100;
+    const mult = curVal/amt;
+    const years = days/365;
+    const cagr = (Math.pow(mult,1/years)-1)*100;
+    const dailyRet = (Math.pow(mult,1/days)-1)*100;
+
+    // ===== SP500 COMPARISON (SPY via Binance doesn't exist, use Yahoo fallback or estimate) =====
+    setLoading('กำลังเปรียบเทียบ S&P 500...');
+    let sp500Val = amt * Math.pow(1.1, years); // fallback 10%/yr
+    try {
+      const spData = await yahooFetch('^GSPC', Math.floor(buyDate/1000), Math.floor(now/1000));
+      const spCloses = spData.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(Boolean);
+      if(spCloses?.length>=2) sp500Val = amt*(spCloses.slice(-1)[0]/spCloses[0]);
+    } catch {}
+
+    // ===== GOLD PRICE — use Binance PAXGUSDT (Pax Gold, 1 token = 1 troy oz) =====
+    let goldGramTHB = 3800;
+    try {
+      const gTicker = await bnFetch('/api/v3/ticker/price?symbol=PAXGUSDT');
+      if(gTicker?.price) goldGramTHB = parseFloat(gTicker.price) * S.usdThb / 31.1035;
+    } catch {
+      try {
+        const gData = await yahooFetch('GC=F', Math.floor(Date.now()/1000)-172800, Math.floor(Date.now()/1000));
+        const gCloses = gData.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(Boolean);
+        if(gCloses?.length) goldGramTHB = gCloses.slice(-1)[0] * S.usdThb / 31.1035;
+      } catch {}
+    }
+
+    // ===== PRICE HISTORY ANALYSIS =====
+    let worstDayPct=0, bestYrPct=0, worstYrPct=0, bestYr='—', worstYr='—';
+    if(priceHistory.length>1){
+      for(let i=1;i<priceHistory.length;i++){
+        const [,prev]=priceHistory[i-1];
+        const [,curr]=priceHistory[i];
+        if(prev&&curr){
+          const chg=(curr-prev)/prev*100;
+          if(chg<worstDayPct) worstDayPct=chg;
+        }
+      }
+      const byYear={};
+      priceHistory.forEach(([ts,p])=>{
+        if(!p) return;
+        const y=new Date(ts).getFullYear();
+        if(!byYear[y]) byYear[y]={f:p,l:p};
+        byYear[y].l=p;
+      });
+      const yrets = Object.entries(byYear).map(([y,d])=>({y,pct:(d.l-d.f)/d.f*100}));
+      if(yrets.length){
+        const best=yrets.reduce((a,b)=>a.pct>b.pct?a:b);
+        const worst=yrets.reduce((a,b)=>a.pct<b.pct?a:b);
+        bestYrPct=best.pct; bestYr=best.y;
+        worstYrPct=worst.pct; worstYr=worst.y;
+      }
+    }
+
+    // ===== DCA 3000/month =====
+    let dcaVal = 0;
+    if(priceHistory.length>1){
+      const monthly={};
+      priceHistory.forEach(([ts,p])=>{
+        if(!p) return;
+        const k=`${new Date(ts).getFullYear()}-${new Date(ts).getMonth()}`;
+        if(!monthly[k]) monthly[k]=p;
+      });
+      let totalCoins=0;
+      Object.values(monthly).forEach(p=>{if(p>0) totalCoins+=3000/p;});
+      dcaVal = totalCoins * curPriceTHB;
+    } else {
+      dcaVal = 3000*Math.floor(days/30)*(curVal/amt);
+    }
+
+    // ===== LATE ENTRY (+2 years) =====
+    let lateVal = curVal;
+    const lateDate = new Date(buyDate); lateDate.setFullYear(lateDate.getFullYear()+2);
+    if(lateDate<now && a.type==='crypto'){
+      try {
+        const dd2=String(lateDate.getDate()).padStart(2,'0');
+        const mm2=String(lateDate.getMonth()+1).padStart(2,'0');
+        const yyyy2=lateDate.getFullYear();
+        const lh = await cgFetch(`/coins/${a.id}/history?date=${dd2}-${mm2}-${yyyy2}&localization=false`);
+        const lp = lh.market_data?.current_price?.thb;
+        if(lp) lateVal = (amt/lp)*curPriceTHB;
+      } catch {}
+    } else if(lateDate<now && priceHistory.length>1){
+      const ltArr = priceHistory.filter(([ts])=>new Date(ts)>=lateDate);
+      if(ltArr.length){
+        const lp = ltArr[0][1];
+        if(lp>0) lateVal = (amt/lp)*curPriceTHB;
+      }
+    }
+
+    // ===== TARGET MCAP =====
+    let targetMcapResult = null;
+    const tmRaw = document.getElementById('targetMcap').value;
+    if(S.optOpen && tmRaw && curMcapUSD){
+      const tm = parseFloat(tmRaw);
+      if(tm>0){
+        const mcapMult = tm/curMcapUSD;
+        targetMcapResult = curVal * mcapMult;
+      }
+    }
+
+    // ===== BENCHMARK =====
+    const benchmarkVal = amt*Math.pow(1+BENCHMARK_RETURN,years);
+    const outperfPct = ((curVal-benchmarkVal)/benchmarkVal)*100;
+
+    // ===== INFLATION =====
+    const inflVal = amt*Math.pow(1+THAI_INFLATION,years);
+    const inflMult = curVal/inflVal;
+
+    const R = {
+      a,amt,dateStr,coins,histPriceTHB,curPriceTHB,athPriceTHB,curMcapUSD,
+      curVal,pnlAmt,pnlPct,mult,years,cagr,dailyRet,
+      sp500Val,goldGramTHB,
+      worstDayPct,bestYrPct,worstYrPct,bestYr,worstYr,
+      dcaVal,lateVal,targetMcapResult:null,
+      outperfPct,inflMult,days,inflVal,
+      benchmarkVal,priceHistory,
+    };
+
+    renderResults(R);
+
+  } catch(e){
+    console.error(e);
+    const m = (e.message||'').toLowerCase();
+    const isNet = m.includes('fetch')||m.includes('network')||m.includes('abort')||m.includes('failed');
+    showErr(isNet
+      ? '⚠️ เชื่อมต่อ API ไม่ได้ — กรุณา deploy ขึ้น Vercel ก่อนใช้งาน (ไม่รองรับการเปิด file:// ตรงๆ)'
+      : e.message||'เกิดข้อผิดพลาด กรุณาลองใหม่');
+  } finally {
+    document.getElementById('loading').classList.remove('show');
+  }
+}
+
+function setLoading(txt){ document.getElementById('loadingTxt').textContent = txt; }
+function showErr(msg){
+  const el=document.getElementById('errMsg');
+  el.textContent='❌ '+msg;el.classList.add('show');
+}
+
+// ========== RENDER ==========
+function renderResults(R){
+  const res = document.getElementById('results');
+  res.classList.add('show');
+  setTimeout(()=>res.scrollIntoView({behavior:'smooth',block:'start'}),80);
+
+  // Hero
+  document.getElementById('rInv').textContent = fmtTHB(R.amt);
+  animNum('rNow',0,R.curVal,2200,fmtTHB);
+
+  const pnlEl = document.getElementById('rPnl');
+  const isP = R.pnlPct>=0;
+  pnlEl.className = 'pnl-badge '+(isP?'profit':'loss');
+  pnlEl.innerHTML = `${isP?'▲':'▼'} ${fmtTHB(Math.abs(R.pnlAmt))} (${isP?'+':''}${R.pnlPct.toFixed(2)}%)`;
+
+  document.getElementById('rCoins').textContent =
+    `คุณได้รับ ${fmtCoins(R.coins)} ${R.a.symbol} ที่ราคา ${fmtTHB(R.histPriceTHB)}/หน่วย → ปัจจุบัน ${fmtTHB(R.curPriceTHB)}/หน่วย`;
+
+  // MCap card for BTC only
+  if(R.a.id==='bitcoin' && R.curMcapUSD){
+    const GOLD_MCAP_USD = 18_000_000_000_000;
+    const mcapMult = GOLD_MCAP_USD / R.curMcapUSD;
+    const btcGoldVal = R.curVal * mcapMult;
+    document.getElementById('mcapGoldVal').textContent = fmtTHB(btcGoldVal);
+  }
+
+  // Render chart
+  renderChart(R.priceHistory, R.a.name);
+
+  // Stats
+  renderStats(R);
+}
+
+function renderStats(R){
+  const THAI_GOLD_BAHT = 15.244; // 1 บาทน้ำหนัก = 15.244 กรัม
+  const goldAtPurchase = R.amt / (R.goldGramTHB * (R.curPriceTHB/R.histPriceTHB > 0 ? 1 : 1)); 
+  // Gold at purchase date: approximate using ratio of gold price change
+  // Use amt / goldGramTHB_at_purchase — estimate: goldGramTHB * (histPriceTHB/curPriceTHB) as rough proxy
+  const goldGramAtPurchase = R.goldGramTHB * (R.histPriceTHB / R.curPriceTHB);
+  const goldBahtWeight = R.amt / (goldGramAtPurchase * THAI_GOLD_BAHT);
+
+  const condos = R.curVal/CONDO_BKK;
+  const houses = R.curVal/HOUSE_BKK;
+  const athVal = R.coins*(R.athPriceTHB||0);
+  const athMorePct = R.athPriceTHB ? ((athVal-R.curVal)/R.curVal*100) : null;
+  const dcaInvested = 3000*Math.floor(R.days/30);
+
+  // US inflation (~3.5%/yr avg recent years, ~2.8% long-term)
+  const US_INFLATION = 0.032;
+  const usInflVal = R.amt * Math.pow(1+US_INFLATION, R.years);
+  const usInflMult = R.curVal / usInflVal;
+
+  const stats = [
+    {
+      ico:'📈',lbl:'เงินคุณโตขึ้น',
+      val:`${R.mult.toFixed(2)}×`,
+      sub:`ลงทุน ${fmtTHB(R.amt)} → ${fmtTHB(R.curVal)}`,
+      col: R.mult>=1?'var(--green)':'var(--red)',
+      animate:true,animEnd:R.mult,fmt:v=>`${v.toFixed(2)}×`,
+    },
+    {
+      ico:'🇹🇭',lbl:'ชนะเงินเฟ้อไทย (3%/ปี)',
+      val:`${R.inflMult.toFixed(2)}× เหนือเงินเฟ้อ`,
+      sub:`มูลค่าที่ควรเป็นตามเงินเฟ้อไทย ${fmtTHB(R.inflVal)}`,
+      col: R.inflMult>=1?'var(--green)':'var(--red)',
+    },
+    {
+      ico:'🇺🇸',lbl:'ชนะเงินเฟ้อเมกา (3.2%/ปี)',
+      val:`${usInflMult.toFixed(2)}× เหนือเงินเฟ้อ`,
+      sub:`มูลค่าที่ควรเป็นตามเงินเฟ้อสหรัฐ ${fmtTHB(usInflVal)}`,
+      col: usInflMult>=1?'var(--green)':'var(--red)',
+    },
+    {
+      ico:'🥇',lbl:`ถ้าเอาเงินก้อนนี้ไปซื้อทองวันที่เลือก`,
+      val:`${goldBahtWeight.toFixed(2)} บาท`,
+      sub:`(บาทน้ำหนักทอง 15.244 กรัม/บาท) ที่ราคา ≈ ${fmtTHB(goldGramAtPurchase)}/กรัม`,
+      col:'var(--gold)',
+    },
+    {
+      ico:'🌎',lbl:'ถ้าเอาเงินลงทุนใน S&P 500 แทน',
+      val:fmtTHB(R.sp500Val),
+      sub:`${R.curVal>=R.sp500Val?'✅ คุณ Beat S&P500!':'⚠️ S&P500 ให้ผลดีกว่า'} (${fmtTHB(R.sp500Val)})`,
+      col:R.curVal>=R.sp500Val?'var(--green)':'var(--text-dim)',
+    },
+    {
+      ico:'🏔️',lbl:'ถ้าขายแถวราคาสูงสุด (ATH) จะได้มากกว่าอีก',
+      val: athMorePct!==null ? `+${athMorePct.toFixed(1)}%` : 'N/A',
+      sub: R.athPriceTHB ? `ATH ≈ ${fmtTHB(R.athPriceTHB)}/หน่วย → มูลค่า ${fmtTHB(athVal)}` : '',
+      col:'var(--gold)',
+    },
+    {
+      ico:'⏰',lbl:`ตอนนั้น ${R.a.name} ราคาเพียง`,
+      val:fmtTHB(R.histPriceTHB),
+      sub:`${R.dateStr} | ปัจจุบัน ${fmtTHB(R.curPriceTHB)}/หน่วย`,
+      col:'var(--cyan)',
+    },
+    {
+      ico:'📊',lbl:'เทียบเท่าการโตเฉลี่ยต่อวัน',
+      val:`+${R.dailyRet.toFixed(4)}%/วัน`,
+      sub:`CAGR ≈ ${R.cagr.toFixed(2)}%/ปี ในช่วง ${R.days} วัน`,
+    },
+    {
+      ico:'💰',lbl:'ถ้าลงทุน 3,000 บาท/เดือน (DCA)',
+      val:fmtTHB(R.dcaVal),
+      sub:`${Math.floor(R.days/30)} เดือน × ฿3,000 = ลงทุนรวม ${fmtTHB(dcaInvested)}`,
+      col:R.dcaVal>dcaInvested?'var(--green)':'var(--red)',
+    },
+    {
+      ico:'🏆',lbl:'Outperform นักลงทุนทั่วไป (7%/ปี)',
+      val:`${R.outperfPct>=0?'+':''}${R.outperfPct.toFixed(1)}%`,
+      sub:`Benchmark ${fmtTHB(R.benchmarkVal)} | คุณได้ ${fmtTHB(R.curVal)}`,
+      col:R.outperfPct>=0?'var(--green)':'var(--red)',
+    },
+    {
+      ico:'🏙️',lbl:'เทียบเท่าคอนโดกรุงเทพ',
+      val:`${condos>=1?condos.toFixed(2):condos.toFixed(4)} ห้อง`,
+      sub:`เฉลี่ยคอนโด กทม. ≈ ${fmtTHB(CONDO_BKK)}/ห้อง`,
+    },
+    {
+      ico:'🏠',lbl:'เทียบเท่าบ้านในกรุงเทพ',
+      val:`${houses>=1?houses.toFixed(3):houses.toFixed(5)} หลัง`,
+      sub:`เฉลี่ยบ้าน กทม. ≈ ${fmtTHB(HOUSE_BKK)}/หลัง`,
+    },
+    {
+      ico:'📉',lbl:'วันที่ขาดทุนหนักสุดในช่วงที่ถือ',
+      val:`${R.worstDayPct.toFixed(2)}%`,
+      sub:`ต่อวัน (ภายในช่วงเวลา ${R.days} วันที่ถือครอง)`,
+      col:'var(--red)',
+    },
+    {
+      ico:'🎯',lbl:'Best Year / Worst Year',
+      val:`+${R.bestYrPct.toFixed(1)}% / ${R.worstYrPct.toFixed(1)}%`,
+      sub:`ปีที่ดีที่สุด: ${R.bestYr} (+${R.bestYrPct.toFixed(1)}%) | ปีที่แย่: ${R.worstYr} (${R.worstYrPct.toFixed(1)}%)`,
+      col:'var(--gold)',
+    },
+  ];
+
+  const grid = document.getElementById('statsGrid');
+  grid.innerHTML = stats.map((s,i)=>`
+    <div class="stat-card" style="transition-delay:${i*0.04}s" data-i="${i}">
+      <div class="stat-ico">${s.ico}</div>
+      <div class="stat-lbl">${s.lbl}</div>
+      <div class="stat-val" style="color:${s.col||'var(--text)'}" id="sv${i}">${s.val}</div>
+      ${s.sub?`<div class="stat-sub">${s.sub}</div>`:''}
+    </div>
+  `).join('');
+
+  // Animate numbers in stat cards
+  stats.forEach((s,i)=>{
+    if(s.animate) setTimeout(()=>animNum(`sv${i}`,0,s.animEnd,1500,s.fmt),i*40+300);
+  });
+
+  // Trigger visibility animation
+  requestAnimationFrame(()=>{
+    grid.querySelectorAll('.stat-card').forEach((el,i)=>{
+      setTimeout(()=>el.classList.add('visible'),i*40);
+    });
+  });
+}
+
+// ========== CHART ==========
+let _chart = null;
+function renderChart(history, name) {
+  const canvas = document.getElementById('priceChart');
+  if (_chart) { _chart.destroy(); _chart = null; }
+  if (!history || history.length < 2) return;
+
+  const step = Math.max(1, Math.floor(history.length / 300));
+  const labels = [], data = [];
+  for (let i = 0; i < history.length; i += step) {
+    if (!history[i][1]) continue;
+    labels.push(new Date(history[i][0]).toLocaleDateString('th-TH',{year:'2-digit',month:'short'}));
+    data.push(+history[i][1].toFixed(2));
+  }
+
+  const isUp = data[data.length-1] >= data[0];
+  const color = isUp ? '#00e676' : '#ff3d57';
+
+  _chart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: color,
+        backgroundColor: isUp ? 'rgba(0,230,118,0.06)' : 'rgba(255,61,87,0.06)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 800 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `฿${ctx.raw.toLocaleString('th-TH',{maximumFractionDigits:2})}`
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color:'#8888aa', font:{size:11}, maxTicksLimit:8 }, grid:{display:false} },
+        y: { ticks: { color:'#8888aa', font:{size:11}, callback: v => fmtTHB(v) }, grid:{color:'rgba(255,255,255,0.04)'} }
+      }
+    }
+  });
+}
+function animNum(id, from, to, duration, formatter){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const t0 = performance.now();
+  const tick = (now) => {
+    const p = Math.min((now-t0)/duration,1);
+    const e = 1-Math.pow(1-p,3); // ease out cubic
+    el.textContent = formatter(from+(to-from)*e);
+    if(p<1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+// ========== FORMATTERS ==========
+function fmtTHB(n){
+  if(n===null||n===undefined) return '—';
+  if(Math.abs(n)>=1e12) return `฿${(n/1e12).toFixed(2)}T`;
+  if(Math.abs(n)>=1e9) return `฿${(n/1e9).toFixed(2)}B`;
+  if(Math.abs(n)>=1e6) return `฿${(n/1e6).toFixed(2)}M`;
+  if(Math.abs(n)>=1000) return `฿${n.toLocaleString('th-TH',{maximumFractionDigits:0})}`;
+  if(Math.abs(n)>=1) return `฿${n.toFixed(2)}`;
+  return `฿${n.toFixed(6)}`;
+}
+function fmtN(n){
+  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(n>=1000) return n.toLocaleString('th-TH',{maximumFractionDigits:0});
+  if(n>=1) return n.toFixed(2);
+  return n.toFixed(6);
+}
+function fmtCoins(n){
+  if(n<0.000001) return n.toFixed(10);
+  if(n<0.001) return n.toFixed(8);
+  if(n<1) return n.toFixed(6);
+  if(n<1000) return n.toFixed(4);
+  return n.toLocaleString('th-TH',{maximumFractionDigits:2});
+}
+</script>
+</body>
+</html>
