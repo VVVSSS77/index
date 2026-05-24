@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DCA Calculator — คำนวณดอกเบี้ยทบต้น</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#06060e;--surface:#0e0e1c;--surface2:#14141f;--surface3:#1c1c2e;
+  --border:rgba(255,215,0,0.07);--border2:rgba(255,255,255,0.07);
+  --gold:#f5c518;--gold2:#e6a800;--gold-glow:rgba(245,197,24,0.12);
+  --cyan:#00e5ff;--green:#00e676;--red:#ff3d57;
+  --text:#f0f0f8;--text-dim:#c0c0d8;--text-muted:#8888aa;
+  --r:16px;--r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Prompt',sans-serif;font-size:16px;line-height:1.6;
+  min-height:100vh;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(245,197,24,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(245,197,24,.025) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0;
+}
+.wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 20px 80px;}
+
+/* HEADER */
+.header{text-align:center;padding:48px 0 28px;}
+.logo{font-family:'Bebas Neue',cursive;font-size:clamp(64px,12vw,120px);letter-spacing:.1em;line-height:1;
+  background:linear-gradient(135deg,#f5c518 0%,#fff7c2 45%,#f5c518 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(245,197,24,.25));}
+.tagline{font-size:17px;color:var(--text-dim);margin-top:6px;font-weight:400;}
+
+/* TABS */
+.tabs-wrap{text-align:center;margin-bottom:32px;}
+.tabs{display:inline-flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:5px;}
+.tab-btn{padding:12px 28px;border-radius:50px;font-size:16px;font-family:'Prompt',sans-serif;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all .25s;text-decoration:none;display:inline-block;}
+.tab-btn.active{background:var(--gold);color:#000;}
+.tab-btn:hover:not(.active){color:var(--text);}
+
+/* LAYOUT */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr;}}
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:28px;margin-bottom:16px;}
+.card-title{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;}
+
+/* INPUTS */
+.input-group{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.input-label{font-size:15px;color:var(--text-dim);font-weight:600;display:flex;align-items:center;gap:6px;}
+.input-label .tip{font-size:12px;color:var(--text-muted);font-weight:400;}
+.input-wrap{position:relative;}
+.input-field{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);
+  padding:13px 16px;color:var(--text);font-size:17px;font-family:'JetBrains Mono',monospace;
+  outline:none;transition:border-color .2s;}
+.input-field:focus{border-color:var(--gold);}
+.input-suffix{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:15px;pointer-events:none;}
+select.input-field{font-family:'Prompt',sans-serif;cursor:pointer;}
+
+/* CONTRIBUTE TIMING */
+.timing-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:15px;color:var(--text-dim);}
+.timing-row select{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;
+  padding:8px 12px;color:var(--text);font-size:15px;font-family:'Prompt',sans-serif;cursor:pointer;outline:none;}
+
+/* CALC BUTTON */
+.calc-btn{width:100%;padding:18px;background:linear-gradient(135deg,#f5c518,#e6a800);
+  border:none;border-radius:var(--r);font-size:19px;font-family:'Prompt',sans-serif;font-weight:700;
+  color:#000;cursor:pointer;letter-spacing:.04em;transition:all .25s;margin-top:4px;}
+.calc-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(245,197,24,.4);}
+.calc-btn:active{transform:translateY(0);}
+
+/* RESULTS */
+.results{display:none;}
+.results.show{display:block;}
+
+/* SUMMARY CARDS */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
+.sum-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-sm);padding:20px;text-align:center;}
+.sum-ico{font-size:22px;margin-bottom:6px;}
+.sum-lbl{font-size:13px;color:var(--text-muted);margin-bottom:6px;line-height:1.5;}
+.sum-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;}
+.sum-sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+/* CHART AREA */
+.charts-row{display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-bottom:16px;}
+@media(max-width:640px){.charts-row{grid-template-columns:1fr;}}
+.chart-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:20px;}
+.chart-title{font-size:13px;color:var(--text-muted);margin-bottom:14px;font-weight:600;}
+
+/* DONUT LEGEND */
+.donut-legend{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:14px;}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+
+/* SCHEDULE TABS */
+.sched-tabs{display:flex;gap:8px;margin-bottom:14px;}
+.sched-tab{padding:8px 18px;border-radius:8px;font-size:14px;font-family:'Prompt',sans-serif;font-weight:600;
+  cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text-muted);transition:all .2s;}
+.sched-tab.active{background:var(--gold);color:#000;border-color:var(--gold);}
+
+/* TABLE */
+.sched-wrap{max-height:380px;overflow-y:auto;border-radius:var(--r-sm);border:1px solid var(--border2);}
+.sched-wrap::-webkit-scrollbar{width:4px;}
+.sched-wrap::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
+table{width:100%;border-collapse:collapse;font-size:15px;}
+thead{position:sticky;top:0;background:var(--surface2);z-index:1;}
+th{padding:13px 16px;text-align:right;color:var(--gold);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;}
+th:first-child{text-align:left;}
+td{padding:12px 16px;text-align:right;border-top:1px solid rgba(255,255,255,0.04);font-family:'JetBrains Mono',monospace;font-size:14px;}
+td:first-child{text-align:left;font-family:'Prompt',sans-serif;font-size:14px;color:var(--text-dim);}
+tr:hover td{background:rgba(245,197,24,.04);}
+
+/* REF */
+.ref-section{background:linear-gradient(135deg,#140f00,#0d0900);border:1px solid rgba(245,197,24,.25);
+  border-radius:var(--r);padding:32px;text-align:center;margin-top:28px;}
+.ref-title{font-size:20px;font-weight:700;color:var(--gold);margin-bottom:8px;}
+.ref-sub{font-size:16px;color:var(--text-muted);margin-bottom:20px;line-height:1.8;}
+.ref-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#000;padding:16px 40px;border-radius:50px;font-size:18px;font-weight:700;text-decoration:none;
+  font-family:'Prompt',sans-serif;transition:all .22s;}
+.ref-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,197,24,.4);}
+.disclaimer{margin-top:20px;padding:16px 20px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);}
+.disclaimer p{font-size:13px;color:var(--text-muted);line-height:1.8;text-align:center;font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="header">
+  <div class="logo">DCA CALC</div>
+  <p class="tagline">คำนวณดอกเบี้ยทบต้น & ผลตอบแทนสะสมแบบ DCA</p>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <a class="tab-btn" href="/index.html">🔍 WHAT IF</a>
+    <a class="tab-btn active" href="/dca.html">📈 DCA Calculator</a>
+  </div>
+</div>
+
+<!-- INPUT SECTION -->
+<div class="card">
+  <div class="card-title">⚙️ ตั้งค่าการลงทุน</div>
+  <div class="grid-2">
+    <div class="input-group">
+      <label class="input-label">เงินลงทุนเริ่มต้น <span class="tip">(บาท)</span></label>
+      <div class="input-wrap">
+        <input class="input-field" id="initAmt" type="number" value="20000" min="0" placeholder="20000">
+        <span class="input-suffix">฿</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">ผลตอบแทนต่อปี <span class="tip">(%)</span></label>
+      <div class="input-wrap">
+        <input class="input-field" id="rate" type="number" value="10" min="0" max="100" step="0.1" placeholder="10">
+        <span class="input-suffix">%</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">เงินฝากเพิ่มรายปี <span class="tip">(บาท)</span></label>
+      <div class="input-wrap">
+        <input class="input-field" id="annualAmt" type="number" value="0" min="0" placeholder="0">
+        <span class="input-suffix">฿</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">เงินฝากเพิ่มรายเดือน <span class="tip">(บาท)</span></label>
+      <div class="input-wrap">
+        <input class="input-field" id="monthlyAmt" type="number" value="3000" min="0" placeholder="3000">
+        <span class="input-suffix">฿</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">ทบต้น</label>
+      <select class="input-field" id="compFreq">
+        <option value="1">รายปี (Annually)</option>
+        <option value="2">ทุก 6 เดือน (Semi-annually)</option>
+        <option value="4">รายไตรมาส (Quarterly)</option>
+        <option value="12" selected>รายเดือน (Monthly)</option>
+        <option value="365">รายวัน (Daily)</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">ระยะเวลาลงทุน</label>
+      <div style="display:flex;gap:10px;">
+        <div class="input-wrap" style="flex:1;">
+          <input class="input-field" id="years" type="number" value="10" min="0" max="50" placeholder="10">
+          <span class="input-suffix" style="font-size:13px;">ปี</span>
+        </div>
+        <div class="input-wrap" style="flex:1;">
+          <input class="input-field" id="months" type="number" value="0" min="0" max="11" placeholder="0">
+          <span class="input-suffix" style="font-size:13px;">เดือน</span>
+        </div>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">อัตราภาษี <span class="tip">(%)</span></label>
+      <div class="input-wrap">
+        <input class="input-field" id="taxRate" type="number" value="0" min="0" max="50" step="0.1" placeholder="0">
+        <span class="input-suffix">%</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">อัตราเงินเฟ้อ <span class="tip">(%/ปี)</span></label>
+      <div class="input-wrap">
+        <input class="input-field" id="inflation" type="number" value="3" min="0" max="20" step="0.1" placeholder="3">
+        <span class="input-suffix">%</span>
+      </div>
+    </div>
+  </div>
+  <button class="calc-btn" id="calcBtn">🧮 คำนวณเลย</button>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="results">
+
+  <!-- SUMMARY -->
+  <div class="summary-grid" id="summaryGrid"></div>
+
+  <!-- CHARTS -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">🥧 สัดส่วนเงินลงทุน</div>
+      <canvas id="donutChart"></canvas>
+      <div class="donut-legend" id="donutLegend"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">📊 มูลค่าสะสมรายปี</div>
+      <canvas id="barChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- SCHEDULE TABLE -->
+  <div class="card">
+    <div class="card-title">📅 ตารางสะสมทรัพย์</div>
+    <div class="sched-tabs">
+      <button class="sched-tab active" id="tabAnnual">รายปี</button>
+      <button class="sched-tab" id="tabMonthly">รายเดือน</button>
+    </div>
+    <div class="sched-wrap">
+      <table>
+        <thead id="schedHead"></thead>
+        <tbody id="schedBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- BINANCE REF -->
+<div class="ref-section">
+  <div class="ref-title">🚀 พร้อมลงจริงแล้วใช่ไหม?</div>
+  <div class="ref-sub">ซื้อเหรียญทั่วโลกได้ง่ายๆ ผ่าน Binance TH<br>ถูกกฎหมาย ปลอดภัย รองรับเงินบาทไทย โอนผ่าน PromptPay ได้เลย</div>
+  <a class="ref-btn" href="https://accounts.binance.th/th/register?ref=Z85ATO1K" target="_blank" rel="noopener">🏦 สมัคร Binance TH ฟรี</a>
+</div>
+<div class="disclaimer">
+  <p>*คริปโทเคอร์เรนซีและโทเคนดิจิทัลมีความเสี่ยงสูง ท่านอาจสูญเสียเงินลงทุนได้ทั้งจำนวน โปรดศึกษาและลงทุนให้เหมาะสมกับระดับความเสี่ยงที่ยอมรับได้*</p>
+</div>
+
+</div>
+
+<script>
+let _donut = null, _bar = null;
+let scheduleData = { annual: [], monthly: [] };
+let currentTab = 'annual';
+
+function fmtB(n) {
+  if (n >= 1e9) return `฿${(n/1e9).toFixed(2)}B`;
+  if (n >= 1e6) return `฿${(n/1e6).toFixed(2)}M`;
+  if (n >= 1e5) return `฿${n.toLocaleString('th-TH',{maximumFractionDigits:0})}`;
+  return `฿${n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+}
+
+function animNum(el, to, duration, fmt) {
+  const t0 = performance.now();
+  const tick = (now) => {
+    const p = Math.min((now-t0)/duration, 1);
+    const e = 1 - Math.pow(1-p, 3);
+    el.textContent = fmt(to * e);
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function calc() {
+  const init     = parseFloat(document.getElementById('initAmt').value) || 0;
+  const annual   = parseFloat(document.getElementById('annualAmt').value) || 0;
+  const monthly  = parseFloat(document.getElementById('monthlyAmt').value) || 0;
+  const rateAnn  = parseFloat(document.getElementById('rate').value) / 100 || 0;
+  const n        = parseInt(document.getElementById('compFreq').value);
+  const yrs      = parseInt(document.getElementById('years').value) || 0;
+  const mos      = parseInt(document.getElementById('months').value) || 0;
+  const taxRate  = parseFloat(document.getElementById('taxRate').value) / 100 || 0;
+  const inflRate = parseFloat(document.getElementById('inflation').value) / 100 || 0;
+
+  const totalMonths = yrs * 12 + mos;
+  const ratePerMonth = rateAnn / 12;
+  const ratePerPeriod = rateAnn / n;
+
+  // Monthly simulation (most accurate for mixed contributions)
+  let balance = init;
+  let totalContrib = 0;
+  let totalInterestEarned = 0;
+  const monthlyRows = [];
+
+  for (let m = 1; m <= totalMonths; m++) {
+    // Add monthly contribution at start of month
+    balance += monthly;
+    totalContrib += monthly;
+
+    // Add annual contribution at start of each year
+    if (m % 12 === 1 && m > 1) {
+      balance += annual;
+      totalContrib += annual;
+    }
+
+    // Interest this month
+    const interest = balance * ratePerMonth;
+    const afterTax = interest * (1 - taxRate);
+    balance += afterTax;
+    totalInterestEarned += afterTax;
+
+    monthlyRows.push({
+      period: m,
+      label: `เดือน ${m}`,
+      deposit: monthly + (m % 12 === 1 && m > 1 ? annual : 0),
+      interest: afterTax,
+      balance,
+    });
+  }
+
+  // Aggregate annual rows
+  const annualRows = [];
+  for (let y = 1; y <= yrs + (mos > 0 ? 1 : 0); y++) {
+    const mEnd = Math.min(y * 12, totalMonths);
+    const mStart = (y - 1) * 12 + 1;
+    const rows = monthlyRows.filter(r => r.period >= mStart && r.period <= mEnd);
+    const deposit = rows.reduce((s, r) => s + r.deposit, 0) + (y === 1 ? 0 : 0);
+    const interest = rows.reduce((s, r) => s + r.interest, 0);
+    const bal = rows.length ? rows[rows.length-1].balance : balance;
+    annualRows.push({ period: y, label: `ปีที่ ${y}`, deposit: y===1 ? init+deposit : deposit, interest, balance: bal });
+  }
+
+  const endBalance = balance;
+  const totalPrincipal = init + totalContrib;
+  const interestOnInit = init * (Math.pow(1 + ratePerMonth, totalMonths) - 1) * (1 - taxRate);
+  const interestOnContrib = totalInterestEarned - interestOnInit;
+  const buyingPower = endBalance / Math.pow(1 + inflRate, totalMonths / 12);
+
+  scheduleData = { annual: annualRows, monthly: monthlyRows };
+  renderResults({ endBalance, totalPrincipal, totalContrib, totalInterestEarned, interestOnInit: Math.max(0,interestOnInit), interestOnContrib: Math.max(0,interestOnContrib), buyingPower, annualRows, monthlyRows, init });
+}
+
+function renderResults(R) {
+  document.getElementById('results').classList.add('show');
+  setTimeout(() => document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'}), 80);
+
+  // Summary cards
+  const summaries = [
+    { ico:'💰', lbl:'ยอดเงินสุดท้าย', val:R.endBalance, col:'var(--gold)', sub:'ก่อนหักเงินเฟ้อ' },
+    { ico:'🏦', lbl:'เงินต้นรวม', val:R.totalPrincipal, col:'var(--cyan)', sub:`เริ่มต้น + สะสมเพิ่ม` },
+    { ico:'📥', lbl:'เงินที่ฝากเพิ่มทั้งหมด', val:R.totalContrib, col:'var(--text)', sub:'ไม่รวมเงินเริ่มต้น' },
+    { ico:'📈', lbl:'ดอกเบี้ย/ผลตอบแทนรวม', val:R.totalInterestEarned, col:'var(--green)', sub:'หลังหักภาษี' },
+    { ico:'🌱', lbl:'ดอกเบี้ยจากเงินเริ่มต้น', val:R.interestOnInit, col:'var(--green)', sub:'' },
+    { ico:'➕', lbl:'ดอกเบี้ยจากเงินสะสม', val:R.interestOnContrib, col:'var(--green)', sub:'' },
+    { ico:'🛒', lbl:'กำลังซื้อจริงหลังเงินเฟ้อ', val:R.buyingPower, col:'var(--text-dim)', sub:'มูลค่าเงินวันนี้' },
+    { ico:'📊', lbl:'ผลตอบแทนรวม', val:null, col: R.totalInterestEarned/R.totalPrincipal>=0?'var(--green)':'var(--red)',
+      valTxt: `+${(R.totalInterestEarned/R.totalPrincipal*100).toFixed(2)}%`, sub:'เทียบกับเงินต้น' },
+  ];
+
+  const grid = document.getElementById('summaryGrid');
+  grid.innerHTML = summaries.map((s,i) => `
+    <div class="sum-card">
+      <div class="sum-ico">${s.ico}</div>
+      <div class="sum-lbl">${s.lbl}</div>
+      <div class="sum-val" style="color:${s.col}" id="sv${i}">${s.valTxt || fmtB(s.val)}</div>
+      ${s.sub ? `<div class="sum-sub">${s.sub}</div>` : ''}
+    </div>
+  `).join('');
+
+  // Animate number cards
+  summaries.forEach((s,i) => {
+    if (s.val !== null) {
+      const el = document.getElementById(`sv${i}`);
+      animNum(el, s.val, 1400, fmtB);
+    }
+  });
+
+  // Donut chart
+  const donutData = [R.init, R.totalContrib, R.totalInterestEarned];
+  const donutLabels = ['เงินเริ่มต้น','เงินสะสม','ดอกเบี้ย'];
+  const donutColors = ['#00e5ff','#f5c518','#00e676'];
+  const total = donutData.reduce((a,b)=>a+b,0);
+
+  if (_donut) { _donut.destroy(); _donut = null; }
+  _donut = new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: donutLabels,
+      datasets: [{ data: donutData, backgroundColor: donutColors, borderColor: '#0e0e1c', borderWidth: 3 }]
+    },
+    options: {
+      cutout: '68%',
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => `${ctx.label}: ${fmtB(ctx.raw)} (${(ctx.raw/total*100).toFixed(1)}%)` }
+      }}
+    }
+  });
+
+  document.getElementById('donutLegend').innerHTML = donutLabels.map((l,i) => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${donutColors[i]}"></div>
+      <span style="color:var(--text-dim)">${l}</span>
+      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:13px">${(donutData[i]/total*100).toFixed(1)}%</span>
+    </div>
+  `).join('');
+
+  // Bar chart
+  const barLabels = R.annualRows.map(r => `ปี ${r.period}`);
+  let cumInit = [], cumContrib = [], cumInterest = [];
+  let cI=0, cC=0, cInt=0;
+  R.annualRows.forEach(r => {
+    if (r.period === 1) { cI = R.init; cC = r.deposit - R.init; }
+    else { cC += r.deposit; }
+    cInt += r.interest;
+    cumInit.push(cI);
+    cumContrib.push(cC);
+    cumInterest.push(cInt);
+  });
+
+  if (_bar) { _bar.destroy(); _bar = null; }
+  _bar = new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: barLabels,
+      datasets: [
+        { label:'เงินเริ่มต้น', data:cumInit, backgroundColor:'#00e5ff', stack:'s' },
+        { label:'เงินสะสม', data:cumContrib, backgroundColor:'#f5c518', stack:'s' },
+        { label:'ดอกเบี้ย', data:cumInterest, backgroundColor:'#00e676', stack:'s' },
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 900 },
+      plugins: {
+        legend: { labels: { color:'#c0c0d8', font:{size:12}, boxWidth:14 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtB(ctx.raw)}` } }
+      },
+      scales: {
+        x: { stacked:true, ticks:{ color:'#8888aa', font:{size:11} }, grid:{display:false} },
+        y: { stacked:true, ticks:{ color:'#8888aa', font:{size:11}, callback: v => fmtB(v) }, grid:{color:'rgba(255,255,255,0.04)'} }
+      }
+    }
+  });
+
+  renderTable('annual');
+}
+
+function renderTable(tab) {
+  currentTab = tab;
+  document.getElementById('tabAnnual').classList.toggle('active', tab==='annual');
+  document.getElementById('tabMonthly').classList.toggle('active', tab==='monthly');
+
+  const rows = scheduleData[tab];
+  document.getElementById('schedHead').innerHTML = `
+    <tr>
+      <th>${tab==='annual'?'ปี':'เดือน'}</th>
+      <th>เงินฝาก</th>
+      <th>ดอกเบี้ย</th>
+      <th>ยอดรวม</th>
+    </tr>`;
+
+  document.getElementById('schedBody').innerHTML = rows.map((r,i) => `
+    <tr style="opacity:0;transform:translateY(8px);transition:all .2s ${i*0.01}s">
+      <td>${r.label}</td>
+      <td>${fmtB(r.deposit)}</td>
+      <td style="color:var(--green)">${fmtB(r.interest)}</td>
+      <td style="color:var(--gold);font-weight:700">${fmtB(r.balance)}</td>
+    </tr>
+  `).join('');
+
+  requestAnimationFrame(() => {
+    document.querySelectorAll('#schedBody tr').forEach(tr => {
+      tr.style.opacity = '1';
+      tr.style.transform = 'translateY(0)';
+    });
+  });
+}
+
+// INIT
+document.getElementById('calcBtn').addEventListener('click', calc);
+document.getElementById('tabAnnual').addEventListener('click', () => renderTable('annual'));
+document.getElementById('tabMonthly').addEventListener('click', () => renderTable('monthly'));
+
+// Auto-calc on load
+calc();
+</script>
+</body>
+</html>
