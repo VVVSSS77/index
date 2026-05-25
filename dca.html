@@ -233,6 +233,12 @@ tr:hover td{background:rgba(245,197,24,.04);}
 
   <!-- SUMMARY -->
   <div class="summary-grid" id="summaryGrid"></div>
+  <div style="text-align:center;margin-bottom:16px;">
+    <button id="shareBtn" style="padding:12px 30px;background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.4);border-radius:50px;color:var(--gold);font-size:15px;font-family:'Prompt',sans-serif;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;">
+      📸 แชร์ผลลัพธ์
+    </button>
+  </div>
+  <canvas id="shareCanvas" style="display:none;"></canvas>
 
   <!-- CHARTS -->
   <div class="charts-row">
@@ -371,6 +377,7 @@ function calc() {
 function renderResults(R) {
   document.getElementById('results').classList.add('show');
   setTimeout(() => document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'}), 80);
+  document.getElementById('shareBtn').onclick = () => generateShareCard(R);
 
   // Summary cards
   const summaries = [
@@ -503,6 +510,144 @@ function renderTable(tab) {
     });
   });
 }
+
+// ========== SHARE CARD ==========
+function fmtFull(n){
+  if(Math.abs(n)>=1e12) return `฿${(n/1e12).toFixed(2)}T`;
+  return `฿${Math.round(n).toLocaleString('th-TH')}`;
+}
+function srRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+
+function generateShareCard(R) {
+  const W=1080,H=1080;
+  const canvas=document.getElementById('shareCanvas');
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+
+  // BG
+  ctx.fillStyle='#06060e';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(245,197,24,0.04)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=54){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=54){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  const grd=ctx.createRadialGradient(W/2,0,0,W/2,0,480);
+  grd.addColorStop(0,'rgba(245,197,24,0.1)');grd.addColorStop(1,'transparent');
+  ctx.fillStyle=grd;ctx.fillRect(0,0,W,480);
+
+  // Watermark
+  ctx.fillStyle='rgba(245,197,24,0.04)';ctx.font='bold 220px serif';ctx.textAlign='center';
+  ctx.fillText('DCA',W/2,H/2+90);
+
+  // Title
+  const tGrad=ctx.createLinearGradient(0,0,W,0);
+  tGrad.addColorStop(0,'#f5c518');tGrad.addColorStop(0.5,'#fff7c2');tGrad.addColorStop(1,'#f5c518');
+  ctx.fillStyle=tGrad;ctx.font='bold 76px serif';ctx.fillText('DCA CALCULATOR',W/2,108);
+
+  // Subtitle
+  const rate=document.getElementById('rate').value;
+  const yrs=document.getElementById('years').value;
+  const mos=document.getElementById('months').value;
+  const period = mos>0 ? `${yrs} ปี ${mos} เดือน` : `${yrs} ปี`;
+  ctx.fillStyle='rgba(245,197,24,0.12)';srRect(ctx,W/2-280,126,560,54,27);ctx.fill();
+  ctx.strokeStyle='rgba(245,197,24,0.3)';ctx.lineWidth=1.5;srRect(ctx,W/2-280,126,560,54,27);ctx.stroke();
+  ctx.fillStyle='#f5c518';ctx.font='500 24px sans-serif';
+  const cardAsset = activePresetId
+    ? ({btc:'Bitcoin',eth:'Ethereum',qqq:'QQQ Nasdaq',sp500:'S&P 500',gold:'ทองคำ'}[activePresetId]||`${rate}%/ปี`)
+    : `โตเฉลี่ย ${rate}%/ปี`;
+  ctx.fillText(`${cardAsset}  •  ${period}`,W/2,165);
+
+  // Stats row top
+  const topStats=[
+    {lbl:'เงินเริ่มต้น',val:fmtFull(R.init)},
+    {lbl:'เงินสะสมเพิ่ม',val:fmtFull(R.totalContrib)},
+    {lbl:'เงินต้นรวม',val:fmtFull(R.totalPrincipal)},
+  ];
+  const bW=300,bH=100,bG=20,bX0=(W-3*bW-2*bG)/2;
+  topStats.forEach((s,i)=>{
+    const bx=bX0+i*(bW+bG);
+    ctx.fillStyle='rgba(0,229,255,0.07)';srRect(ctx,bx,210,bW,bH,12);ctx.fill();
+    ctx.strokeStyle='rgba(0,229,255,0.2)';ctx.lineWidth=1;srRect(ctx,bx,210,bW,bH,12);ctx.stroke();
+    ctx.fillStyle='#8888aa';ctx.font='400 19px sans-serif';ctx.fillText(s.lbl,bx+bW/2,238);
+    ctx.fillStyle='#00e5ff';ctx.font='700 26px monospace';ctx.fillText(s.val,bx+bW/2,276);
+  });
+
+  // Arrow
+  ctx.fillStyle='#f5c518';ctx.font='48px sans-serif';ctx.fillText('↓',W/2,360);
+
+  // End balance
+  ctx.fillStyle='#8888aa';ctx.font='400 28px sans-serif';ctx.fillText('ยอดเงินสุดท้าย',W/2,410);
+  const vGrad=ctx.createLinearGradient(100,0,980,0);
+  vGrad.addColorStop(0,'#f5c518');vGrad.addColorStop(1,'#fff7c2');
+  ctx.fillStyle=vGrad;
+  const endTxt=fmtFull(R.endBalance);
+  const fs=endTxt.length>14?72:endTxt.length>10?88:104;
+  ctx.font=`bold ${fs}px monospace`;ctx.fillText(endTxt,W/2,510);
+
+  // Interest badge
+  ctx.fillStyle='rgba(0,230,118,0.12)';srRect(ctx,W/2-240,534,480,64,32);ctx.fill();
+  ctx.strokeStyle='rgba(0,230,118,0.3)';ctx.lineWidth=1.5;srRect(ctx,W/2-240,534,480,64,32);ctx.stroke();
+  ctx.fillStyle='#00e676';ctx.font='bold 30px monospace';
+  ctx.fillText(`📈 ดอกเบี้ย/ผลตอบแทน ${fmtFull(R.totalInterestEarned)}`,W/2,575);
+
+  // Bottom stats
+  const botStats=[
+    {lbl:'กำลังซื้อหลังเงินเฟ้อ',val:fmtFull(R.buyingPower),col:'#c0c0d8'},
+    {lbl:'ผลตอบแทนรวม',val:`+${(R.totalInterestEarned/R.totalPrincipal*100).toFixed(1)}%`,col:'#00e676'},
+  ];
+  const b2W=460,b2H=108,b2G=20,b2X0=(W-2*b2W-b2G)/2;
+  botStats.forEach((s,i)=>{
+    const bx=b2X0+i*(b2W+b2G);
+    ctx.fillStyle='rgba(255,255,255,0.04)';srRect(ctx,bx,628,b2W,b2H,14);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;srRect(ctx,bx,628,b2W,b2H,14);ctx.stroke();
+    ctx.fillStyle='#8888aa';ctx.font='400 19px sans-serif';ctx.fillText(s.lbl,bx+b2W/2,658);
+    ctx.fillStyle=s.col;ctx.font='700 30px monospace';ctx.fillText(s.val,bx+b2W/2,700);
+  });
+
+  // Divider
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(80,768);ctx.lineTo(W-80,768);ctx.stroke();
+
+  // Bar chart mini
+  if(R.annualRows.length){
+    const maxBal=Math.max(...R.annualRows.map(r=>r.balance));
+    const chartX=90,chartY=790,chartW=W-180,chartH=160;
+    const bwid=Math.min(60,(chartW/R.annualRows.length)-4);
+    R.annualRows.forEach((r,i)=>{
+      const bh=(r.balance/maxBal)*chartH;
+      const bx=chartX+i*(chartW/R.annualRows.length);
+      ctx.fillStyle=`rgba(245,197,24,${0.3+0.5*(r.balance/maxBal)})`;
+      ctx.fillRect(bx,chartY+chartH-bh,bwid,bh);
+    });
+  }
+
+  // Footer
+  ctx.fillStyle='#888899';ctx.font='bold 26px sans-serif';ctx.fillText('WHATIF.WTF',W/2,992);
+  ctx.fillStyle='#444460';ctx.font='400 19px sans-serif';ctx.fillText('ลองคำนวณ DCA ของคุณเองที่นี่ 🚀',W/2,1028);
+
+  // Generate
+  canvas.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+  // Build smart share text
+  const initVal = parseFloat(document.getElementById('initAmt').value)||0;
+  const monthlyVal = parseFloat(document.getElementById('monthlyAmt').value)||0;
+  const annualVal = parseFloat(document.getElementById('annualAmt').value)||0;
+  const assetName = activePresetId
+    ? ({btc:'Bitcoin',eth:'Ethereum',qqq:'QQQ Nasdaq',sp500:'S&P 500',gold:'ทองคำ'}[activePresetId]||`${rate}%/ปี`)
+    : null;
+  const assetDesc = assetName ? `${assetName}` : `ทรัพย์โตเฉลี่ย ${rate}%/ปี`;
+
+  let parts = [];
+  if(initVal>0) parts.push(`ลงทุน ${fmtFull(initVal)}`);
+  if(monthlyVal>0) parts.push(`DCA เดือนละ ${fmtFull(monthlyVal)}`);
+  if(annualVal>0) parts.push(`ฝากปีละ ${fmtFull(annualVal)}`);
+  const investDesc = parts.length===2 ? parts.join(' และ ') : parts.join(' ');
+
+  const shareText=`${investDesc} ใน${assetDesc} ใน ${period} → ${fmtFull(R.endBalance)}\n\nลองคำนวณ DCA ของคุณที่ WHATIF.WTF 🚀\nhttps://whatif.wtf`;
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],'dca-result.png',{type:'image/png'})]})){
+      navigator.share({title:'DCA Calculator',text:shareText+'\nhttps://whatif.wtf',files:[new File([blob],'dca-result.png',{type:'image/png'})]}).catch(()=>dlImg(url));
+    } else { dlImg(url); }
+  },'image/png');
+}
+function dlImg(url){const a=document.createElement('a');a.href=url;a.download='dca-result.png';a.click();URL.revokeObjectURL(url);}
 
 // CAGR presets
 const SP500_RATE = 10.5;
