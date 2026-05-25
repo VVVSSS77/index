@@ -610,7 +610,6 @@ const CRYPTOS = [
   {id:'arbitrum',symbol:'ARB',binance:'ARBUSDT',name:'Arbitrum',icon:'🔵',type:'crypto',cur:'THB',created:'2023-03-23',binanceStart:'2023-03-23'},
   {id:'sui',symbol:'SUI',binance:'SUIUSDT',name:'Sui',icon:'💧',type:'crypto',cur:'THB',created:'2023-05-03',binanceStart:'2023-05-03'},
   {id:'pepe',symbol:'PEPE',binance:'PEPEUSDT',name:'Pepe',icon:'🐸',type:'crypto',cur:'THB',created:'2023-04-14',binanceStart:'2023-05-05'},
-  {id:'hyperliquid',symbol:'HYPE',binance:'HYPEUSDT',name:'Hyperliquid',icon:'🌊',type:'crypto',cur:'THB',created:'2024-11-29',binanceStart:'2024-11-29',futures:true},
 ];
 
 // ========== HISTORICAL PRICES (before Binance, USD/unit, end-of-month approx) ==========
@@ -862,13 +861,6 @@ async function bnFetch(path) {
   return r.json();
 }
 
-// Binance Futures API (USDT-M Perpetual) — สำหรับเหรียญที่ไม่มี spot เช่น HYPE
-const BINANCE_FUTURES = 'https://fapi.binance.com';
-async function bnFutureFetch(path) {
-  const r = await fetch(BINANCE_FUTURES + path);
-  if (!r.ok) throw new Error('Binance Futures API error ' + r.status);
-  return r.json();
-}
 
 // Yahoo Finance via Vercel serverless proxy (no CORS issue)
 async function yahooFetch(sym, from, to) {
@@ -933,13 +925,8 @@ async function doCalc(){
       const sym = a.binance;
       const endMs = now.getTime();
 
-      // Get current price (always from Binance — spot or futures)
-      let curTicker;
-      if (a.futures) {
-        curTicker = await bnFutureFetch(`/fapi/v1/ticker/price?symbol=${sym}`);
-      } else {
-        curTicker = await bnFetch(`/api/v3/ticker/price?symbol=${sym}`);
-      }
+      // Get current price from Binance spot
+      const curTicker = await bnFetch(`/api/v3/ticker/price?symbol=${sym}`);
       curPriceTHB = parseFloat(curTicker.price) * S.usdThb;
 
       const isPreBinance = buyDate < new Date(a.binanceStart || '2017-08-17');
@@ -963,7 +950,7 @@ async function doCalc(){
           .filter(([ts]) => ts >= buyDate.getTime())
           .sort((a, b) => a[0] - b[0]);
 
-        const bnKlines = await fetchAllKlines(sym, bnStart.getTime(), endMs, a.futures||false);
+        const bnKlines = await fetchAllKlines(sym, bnStart.getTime(), endMs);
         const bnHistory = bnKlines.map(k => [k[0], parseFloat(k[4]) * S.usdThb]);
         priceHistory = [...preHistory, ...bnHistory];
 
@@ -975,13 +962,13 @@ async function doCalc(){
       } else {
         // Normal Binance flow
         const startMs = buyDate.getTime();
-        const histKlines = await (a.futures
-          ? bnFutureFetch(`/fapi/v1/klines?symbol=${sym}&interval=1d&startTime=${startMs}&endTime=${startMs+172800000}&limit=3`)
-          : bnFetch(`/api/v3/klines?symbol=${sym}&interval=1d&startTime=${startMs}&endTime=${startMs+172800000}&limit=3`));
+        const histKlines = await bnFetch(
+          `/api/v3/klines?symbol=${sym}&interval=1d&startTime=${startMs}&endTime=${startMs+172800000}&limit=3`
+        );
         if (!histKlines?.length) throw new Error('ไม่พบราคา ณ วันที่เลือก');
         histPriceTHB = parseFloat(histKlines[0][4]) * S.usdThb;
 
-        const allKlines = await fetchAllKlines(sym, startMs, endMs, a.futures||false);
+        const allKlines = await fetchAllKlines(sym, startMs, endMs);
         athPriceTHB = Math.max(...allKlines.map(k => parseFloat(k[2]))) * S.usdThb;
         priceHistory = allKlines.map(k => [k[0], parseFloat(k[4]) * S.usdThb]);
       }
