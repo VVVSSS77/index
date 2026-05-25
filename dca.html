@@ -305,7 +305,9 @@ function animNum(el, to, duration, fmt) {
   requestAnimationFrame(tick);
 }
 
-function calc() {
+let userTriggered = false;
+
+function calc(scroll = false) {
   const init     = parseFloat(document.getElementById('initAmt').value) || 0;
   const annual   = parseFloat(document.getElementById('annualAmt').value) || 0;
   const monthly  = parseFloat(document.getElementById('monthlyAmt').value) || 0;
@@ -371,12 +373,12 @@ function calc() {
   const buyingPower = endBalance / Math.pow(1 + inflRate, totalMonths / 12);
 
   scheduleData = { annual: annualRows, monthly: monthlyRows };
-  renderResults({ endBalance, totalPrincipal, totalContrib, totalInterestEarned, interestOnInit: Math.max(0,interestOnInit), interestOnContrib: Math.max(0,interestOnContrib), buyingPower, annualRows, monthlyRows, init });
+  renderResults({ endBalance, totalPrincipal, totalContrib, totalInterestEarned, interestOnInit: Math.max(0,interestOnInit), interestOnContrib: Math.max(0,interestOnContrib), buyingPower, annualRows, monthlyRows, init }, scroll);
 }
 
-function renderResults(R) {
+function renderResults(R, scroll = false) {
   document.getElementById('results').classList.add('show');
-  setTimeout(() => document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'}), 80);
+  if (scroll) setTimeout(() => document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'}), 80);
   document.getElementById('shareBtn').onclick = () => generateShareCard(R);
 
   // Summary cards
@@ -661,7 +663,7 @@ document.querySelectorAll('.rate-preset').forEach(btn => {
     activePresetId = this.dataset.id;
     document.getElementById('rate').value = rate;
     updateRateEmoji(rate, activePresetId);
-    calc();
+    calc(false);
   });
 });
 
@@ -688,10 +690,10 @@ function updateRateEmoji(rate, id) {
 }
 
 // INIT
-document.getElementById('calcBtn').addEventListener('click', calc);
+document.getElementById('calcBtn').addEventListener('click', () => calc(true));
 document.getElementById('tabAnnual').addEventListener('click', () => renderTable('annual'));
 document.getElementById('tabMonthly').addEventListener('click', () => renderTable('monthly'));
-calc();
+calc(false);
 </script>
 </body>
 </html>
