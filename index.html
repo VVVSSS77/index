@@ -365,7 +365,7 @@ select.input-field{cursor:pointer;background-image:none;font-family:'Prompt',san
 
 <!-- RESULTS -->
 <div class="results" id="results">
-  <div class="hero-card">
+  <div class="hero-card" id="heroCard">
     <div class="h-invested-lbl">คุณลงทุนไป</div>
     <div class="h-invested-val" id="rInv">—</div>
     <span class="h-arrow">↓</span>
@@ -373,7 +373,11 @@ select.input-field{cursor:pointer;background-image:none;font-family:'Prompt',san
     <div class="h-now-val" id="rNow">—</div>
     <div><span class="pnl-badge" id="rPnl">—</span></div>
     <div class="h-coins" id="rCoins"></div>
+    <button id="shareBtn" style="margin-top:22px;padding:11px 28px;background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.4);border-radius:50px;color:var(--gold);font-size:15px;font-family:'Prompt',sans-serif;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;">
+      📸 แชร์ผลลัพธ์
+    </button>
   </div>
+  <canvas id="shareCanvas" style="display:none;"></canvas>
 
   <div class="mcap-res" id="mcapRes">
     <div class="mcap-lbl">🎯 ถ้า Market Cap ถึงเป้าหมาย</div>
@@ -1016,6 +1020,9 @@ function renderResults(R){
     `<span style="margin:0 8px;color:var(--text-muted)">|</span>`+
     `<span>ราคาวันนี้ <strong style="color:var(--green)">${fmtTHB(R.curPriceTHB)}</strong>/หน่วย</span>`;
 
+  // Wire share button
+  document.getElementById('shareBtn').onclick = () => generateShareCard(R);
+
   // MCap card for BTC only
   if(R.a.id==='bitcoin' && R.curMcapUSD){
     const GOLD_MCAP_USD = 18_000_000_000_000;
@@ -1230,6 +1237,66 @@ function renderChart(history, name, coins, invested) {
     }
   });
 }
+// ========== SHARE CARD ==========
+function generateShareCard(R) {
+  const W=1080,H=1080;
+  const canvas=document.getElementById('shareCanvas');
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#06060e';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(245,197,24,0.04)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=54){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=54){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  const grd=ctx.createRadialGradient(W/2,0,0,W/2,0,500);
+  grd.addColorStop(0,'rgba(245,197,24,0.12)');grd.addColorStop(1,'transparent');
+  ctx.fillStyle=grd;ctx.fillRect(0,0,W,500);
+  const wGrad=ctx.createLinearGradient(0,0,W,0);
+  wGrad.addColorStop(0,'#f5c518');wGrad.addColorStop(0.5,'#fff7c2');wGrad.addColorStop(1,'#f5c518');
+  ctx.fillStyle=wGrad;ctx.textAlign='center';
+  ctx.font='bold 80px serif';ctx.fillText('WHAT IF',W/2,108);
+  ctx.fillStyle='rgba(245,197,24,0.12)';
+  srRect(ctx,W/2-260,128,520,56,28);ctx.fill();
+  ctx.strokeStyle='rgba(245,197,24,0.35)';ctx.lineWidth=1.5;
+  srRect(ctx,W/2-260,128,520,56,28);ctx.stroke();
+  ctx.fillStyle='#f5c518';ctx.font='500 25px sans-serif';
+  ctx.fillText(`${R.a.name} (${R.a.symbol})  •  ${R.dateStr}`,W/2,168);
+  ctx.fillStyle='#8888aa';ctx.font='400 28px sans-serif';ctx.fillText('ลงทุนไป',W/2,256);
+  ctx.fillStyle='#c0c0d8';ctx.font='600 46px monospace';ctx.fillText(fmtTHB(R.amt),W/2,314);
+  ctx.fillStyle='#f5c518';ctx.font='52px sans-serif';ctx.fillText('↓',W/2,382);
+  ctx.fillStyle='#8888aa';ctx.font='400 28px sans-serif';ctx.fillText('กลายเป็น',W/2,436);
+  const vGrad=ctx.createLinearGradient(100,0,980,0);
+  vGrad.addColorStop(0,'#f5c518');vGrad.addColorStop(1,'#fff7c2');
+  ctx.fillStyle=vGrad;ctx.font='bold 104px monospace';ctx.fillText(fmtTHB(R.curVal),W/2,552);
+  const isP=R.pnlPct>=0;
+  ctx.fillStyle=isP?'rgba(0,230,118,0.15)':'rgba(255,61,87,0.15)';
+  srRect(ctx,W/2-250,578,500,70,35);ctx.fill();
+  ctx.strokeStyle=isP?'rgba(0,230,118,0.4)':'rgba(255,61,87,0.4)';ctx.lineWidth=2;
+  srRect(ctx,W/2-250,578,500,70,35);ctx.stroke();
+  ctx.fillStyle=isP?'#00e676':'#ff3d57';ctx.font='bold 34px monospace';
+  ctx.fillText(`${isP?'▲':'▼'} ${fmtTHB(Math.abs(R.pnlAmt))} (${isP?'+':''}${R.pnlPct.toFixed(2)}%)`,W/2,624);
+  const stats=[{lbl:'โตขึ้น',val:`${R.mult.toFixed(2)}×`},{lbl:'จำนวนที่ซื้อ',val:`${fmtCoins(R.coins)} ${R.a.symbol}`},{lbl:'CAGR/ปี',val:`${R.cagr.toFixed(1)}%`}];
+  const bW=296,bH=108,bG=26,bX0=(W-3*bW-2*bG)/2;
+  stats.forEach((s,i)=>{
+    const bx=bX0+i*(bW+bG);
+    ctx.fillStyle='rgba(255,255,255,0.04)';srRect(ctx,bx,720,bW,bH,14);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;srRect(ctx,bx,720,bW,bH,14);ctx.stroke();
+    ctx.fillStyle='#8888aa';ctx.font='400 20px sans-serif';ctx.fillText(s.lbl,bx+bW/2,750);
+    ctx.fillStyle='#f0f0f8';ctx.font='700 26px monospace';ctx.fillText(s.val,bx+bW/2,788);
+  });
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(80,870);ctx.lineTo(W-80,870);ctx.stroke();
+  ctx.fillStyle='#555570';ctx.font='400 22px sans-serif';ctx.fillText('whatif-agian.vercel.app',W/2,920);
+  ctx.fillStyle='rgba(245,197,24,0.05)';ctx.font='bold 220px serif';ctx.fillText('WI',W/2,H/2+100);
+  canvas.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],'whatif.png',{type:'image/png'})]})){
+      navigator.share({title:'WHAT IF',text:`ลงทุน ${fmtTHB(R.amt)} ใน ${R.a.name} → ${fmtTHB(R.curVal)}`,files:[new File([blob],'whatif.png',{type:'image/png'})]}).catch(()=>dlImg(url));
+    } else { dlImg(url); }
+  },'image/png');
+}
+function dlImg(url){const a=document.createElement('a');a.href=url;a.download='whatif-result.png';a.click();URL.revokeObjectURL(url);}
+function srRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+
 function animNum(id, from, to, duration, formatter){
   const el = document.getElementById(id);
   if(!el) return;

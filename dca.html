@@ -125,7 +125,11 @@ tr:hover td{background:rgba(245,197,24,.04);}
   color:#000;padding:16px 40px;border-radius:50px;font-size:18px;font-weight:700;text-decoration:none;
   font-family:'Prompt',sans-serif;transition:all .22s;}
 .ref-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,197,24,.4);}
-.disclaimer{margin-top:20px;padding:16px 20px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);}
+.rate-preset{padding:7px 14px;border-radius:8px;font-size:14px;font-family:'Prompt',sans-serif;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text-muted);transition:all .18s;}
+.rate-preset:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-glow);}
+.rate-preset.active{background:var(--gold);color:#000;border-color:var(--gold);}
+.fire-anim{display:inline-block;animation:fireShake .4s infinite alternate;}
+@keyframes fireShake{0%{transform:rotate(-8deg) scale(1.1);}100%{transform:rotate(8deg) scale(1.2);}}
 .disclaimer p{font-size:13px;color:var(--text-muted);line-height:1.8;text-align:center;font-style:italic;}
 </style>
 </head>
@@ -156,10 +160,17 @@ tr:hover td{background:rgba(245,197,24,.04);}
       </div>
     </div>
     <div class="input-group">
-      <label class="input-label">ผลตอบแทนต่อปี <span class="tip">(%)</span></label>
+      <label class="input-label">ผลตอบแทนเฉลี่ยต่อปี <span class="tip">(%)</span></label>
       <div class="input-wrap">
-        <input class="input-field" id="rate" type="number" value="10" min="0" max="100" step="0.1" placeholder="10">
-        <span class="input-suffix">%</span>
+        <input class="input-field" id="rate" type="number" value="10" min="0" max="500" step="0.1" placeholder="10">
+        <span class="input-suffix" id="rateEmoji">%</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+        <button class="rate-preset" data-rate="49" data-id="btc">₿ BTC</button>
+        <button class="rate-preset" data-rate="35" data-id="eth">Ξ ETH</button>
+        <button class="rate-preset" data-rate="17" data-id="qqq">📊 QQQ</button>
+        <button class="rate-preset" data-rate="10.5" data-id="sp500">🌎 S&P500</button>
+        <button class="rate-preset" data-rate="8" data-id="gold">🥇 GOLD</button>
       </div>
     </div>
     <div class="input-group">
@@ -493,12 +504,48 @@ function renderTable(tab) {
   });
 }
 
+// CAGR presets
+const SP500_RATE = 10.5;
+let activePresetId = null;
+
+document.querySelectorAll('.rate-preset').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.rate-preset').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const rate = parseFloat(this.dataset.rate);
+    activePresetId = this.dataset.id;
+    document.getElementById('rate').value = rate;
+    updateRateEmoji(rate, activePresetId);
+    calc();
+  });
+});
+
+document.getElementById('rate').addEventListener('input', function() {
+  document.querySelectorAll('.rate-preset').forEach(b => b.classList.remove('active'));
+  activePresetId = null;
+  updateRateEmoji(parseFloat(this.value), null);
+});
+
+function updateRateEmoji(rate, id) {
+  const el = document.getElementById('rateEmoji');
+  if (id === 'eth' && rate < SP500_RATE) {
+    el.textContent = '💩';
+    el.title = 'แพ้ S&P500!';
+  } else if (rate >= 80) {
+    el.innerHTML = '<span class="fire-anim">🔥🔥🔥</span>';
+  } else if (rate >= 40) {
+    el.innerHTML = '<span class="fire-anim">🔥🔥</span>';
+  } else if (rate >= 25) {
+    el.innerHTML = '<span class="fire-anim">🔥</span>';
+  } else {
+    el.textContent = '%';
+  }
+}
+
 // INIT
 document.getElementById('calcBtn').addEventListener('click', calc);
 document.getElementById('tabAnnual').addEventListener('click', () => renderTable('annual'));
 document.getElementById('tabMonthly').addEventListener('click', () => renderTable('monthly'));
-
-// Auto-calc on load
 calc();
 </script>
 </body>
