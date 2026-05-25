@@ -837,19 +837,22 @@ const BINANCE = 'https://api.binance.com';
 
 // Fetch all daily klines in batches (Binance limit 1000/req = ~2.7 years)
 async function fetchAllKlines(sym, startMs, endMs) {
+  const days = (endMs - startMs) / 86400000;
+  // ใช้ weekly ถ้า > 2 ปี, daily ถ้าสั้นกว่า → เร็วกว่า 7 เท่า
+  const interval = days > 730 ? '1w' : '1d';
   const all = [];
   let cur = startMs;
-  const DAY = 86400000;
+  const STEP = days > 730 ? 604800000 : 86400000; // 1 week or 1 day ms
   while (cur < endMs) {
     const batch = await bnFetch(
-      `/api/v3/klines?symbol=${sym}&interval=1d&startTime=${cur}&endTime=${endMs}&limit=1000`
+      `/api/v3/klines?symbol=${sym}&interval=${interval}&startTime=${cur}&endTime=${endMs}&limit=1000`
     );
     if (!batch || !batch.length) break;
     all.push(...batch);
     const last = batch[batch.length - 1][0];
     if (last <= cur) break;
-    cur = last + DAY;
-    if (all.length > 8000) break; // safety cap
+    cur = last + STEP;
+    if (all.length > 5000) break;
   }
   return all;
 }
