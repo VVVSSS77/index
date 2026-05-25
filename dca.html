@@ -3,10 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DCA Calculator — คำนวณดอกเบี้ยทบต้น</title>
+
+<!-- ========== PRIMARY SEO ========== -->
+<title>DCA Calculator — คำนวณดอกเบี้ยทบต้น ลงทุนสม่ำเสมอ | WHATIF.WTF</title>
+<meta name="description" content="คำนวณผลตอบแทน DCA และดอกเบี้ยทบต้น ใส่เงินต้น เงินฝากรายเดือน ผลตอบแทนต่อปี แล้วดูว่าจะมีเงินเท่าไหร่ใน 10-30 ปี">
+<meta name="keywords" content="DCA calculator, ดอกเบี้ยทบต้น, คำนวณ DCA, ลงทุนสม่ำเสมอ, compound interest, bitcoin DCA, ลงทุนรายเดือน, ผลตอบแทนทบต้น, เงินทบต้น, DCA ไทย">
+<meta name="author" content="WHATIF.WTF">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://whatif.wtf/dca.html">
+
+<!-- ========== OPEN GRAPH ========== -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://whatif.wtf/dca.html">
+<meta property="og:title" content="DCA Calculator — คำนวณดอกเบี้ยทบต้น | WHATIF.WTF">
+<meta property="og:description" content="คำนวณว่าถ้า DCA เดือนละ 3,000 บาทใน Bitcoin นาน 10 ปี จะมีเงินเท่าไหร่ พร้อมกราฟและตารางรายปี">
+<meta property="og:image" content="https://whatif.wtf/og-dca.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="th_TH">
+<meta property="og:site_name" content="WHATIF.WTF">
+
+<!-- ========== TWITTER CARD ========== -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://whatif.wtf/dca.html">
+<meta name="twitter:title" content="DCA Calculator — คำนวณดอกเบี้ยทบต้น | WHATIF.WTF">
+<meta name="twitter:description" content="DCA เดือนละ 3,000 บาทใน Bitcoin 10 ปี จะมีเงินเท่าไหร่? คำนวณได้เลย!">
+<meta name="twitter:image" content="https://whatif.wtf/og-dca.png">
+<meta name="twitter:site" content="@whatifwtf">
+
+<!-- ========== STRUCTURED DATA ========== -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "DCA Calculator — WHATIF.WTF",
+  "url": "https://whatif.wtf/dca.html",
+  "description": "คำนวณผลตอบแทน DCA และดอกเบี้ยทบต้น สำหรับการลงทุนใน Bitcoin, ETH, S&P500 และทองคำ",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "th",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "THB" },
+  "isPartOf": { "@type": "WebSite", "name": "WHATIF.WTF", "url": "https://whatif.wtf" }
+}
+</script>
+
+<!-- ========== PERFORMANCE ========== -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- ========== FAVICON ========== -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<meta name="theme-color" content="#f5c518">
 <style>
 :root{
   --bg:#06060e;--surface:#0e0e1c;--surface2:#14141f;--surface3:#1c1c2e;
@@ -269,6 +317,34 @@ tr:hover td{background:rgba(245,197,24,.04);}
   </div>
 
 </div>
+
+<!-- FAQ -->
+<div style="margin-top:32px;padding:28px;background:#0e0e1c;border:1px solid rgba(255,255,255,0.07);border-radius:16px;">
+  <div style="font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f5c518;margin-bottom:20px;">❓ คำถามที่พบบ่อย เรื่อง DCA</div>
+  <div id="dcaFaqList"></div>
+</div>
+<script>
+const DCA_FAQS = [
+  {q:'DCA เดือนละ 1,000 บาทใน Bitcoin นาน 5 ปี จะได้เท่าไหร่?', a:'ลองกด ₿ BTC แล้วใส่เงินฝากรายเดือน 1,000 ระยะเวลา 5 ปี แล้วกดคำนวณด้านบนจะเห็นตัวเลขแม่นยำพร้อมกราฟเลยครับ'},
+  {q:'DCA เดือนละ 3,000 บาทใน S&P500 นาน 30 ปี จะได้เท่าไหร่?', a:'S&P500 เฉลี่ย 10.5%/ปี DCA เดือนละ 3,000 บาท 30 ปี จะมีเงินประมาณ 7-8 ล้านบาท ลองคำนวณได้ด้านบน'},
+  {q:'ทบต้นรายเดือนดีกว่ารายปีไหม?', a:'ดีกว่าเล็กน้อยครับ เช่น 10%/ปี ทบต้นรายเดือน = ผลตอบแทนจริง 10.47%/ปี ยิ่งทบบ่อยยิ่งได้มากกว่านิดหน่อย'},
+  {q:'เริ่ม DCA ตอนอายุเท่าไหร่ดีที่สุด?', a:'ยิ่งเริ่มเร็วยิ่งดีครับ เพราะดอกเบี้ยทบต้นต้องการเวลา เริ่มอายุ 25 ปีดีกว่าอายุ 35 ปีมาก ลองเปรียบเทียบระยะเวลาต่างกันในเครื่องคิดเลขด้านบน'},
+  {q:'DCA Bitcoin ดีกว่าฝากธนาคารไหม?', a:'ในช่วง 10 ปีที่ผ่านมา Bitcoin ให้ผลตอบแทนเฉลี่ย 49%/ปี ขณะที่ฝากธนาคารได้ประมาณ 1-2%/ปี แต่ Bitcoin มีความเสี่ยงสูงมาก'},
+  {q:'ถ้าลงทุน 10,000 บาทตอนนี้ใน Bitcoin นาน 10 ปี จะได้เท่าไหร่?', a:'ใส่เงินเริ่มต้น 10,000 กด BTC แล้วตั้งระยะเวลา 10 ปี แล้วกดคำนวณด้านบนจะเห็นตัวเลขพร้อมกราฟและตารางรายปีเลยครับ'},
+];
+const el = document.getElementById('dcaFaqList');
+if(el){
+  el.innerHTML = DCA_FAQS.map((f,i) => `
+    <div style="border-bottom:1px solid rgba(255,255,255,0.05);padding:14px 0;cursor:pointer;" onclick="this.querySelector('.ans').style.display=this.querySelector('.ans').style.display==='none'?'block':'none';this.querySelector('.ico').textContent=this.querySelector('.ico').textContent==='＋'?'－':'＋'">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div style="font-size:15px;font-weight:600;color:#c0c0d8;">${f.q}</div>
+        <span class="ico" style="color:#f5c518;font-size:18px;flex-shrink:0;">＋</span>
+      </div>
+      <div class="ans" style="display:none;margin-top:10px;font-size:14px;color:#8888aa;line-height:1.8;">${f.a}</div>
+    </div>
+  `).join('');
+}
+</script>
 
 <!-- BINANCE REF -->
 <div class="ref-section">
