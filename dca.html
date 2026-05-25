@@ -641,7 +641,7 @@ function generateShareCard(R) {
   if(annualVal>0) parts.push(`ฝากปีละ ${fmtFull(annualVal)}`);
   const investDesc = parts.length===2 ? parts.join(' และ ') : parts.join(' ');
 
-  const shareText=`${investDesc} ใน${assetDesc} ใน ${period} → ${fmtFull(R.endBalance)}\n\nลองคำนวณ DCA ของคุณที่ WHATIF.WTF 🚀\nhttps://whatif.wtf`;
+  const shareText=`${investDesc} ใน${assetDesc} ใน ${period} → ${fmtFull(R.endBalance)}\nลองคำนวณ DCA ของคุณที่ https://whatif.wtf`;
     if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],'dca-result.png',{type:'image/png'})]})){
       navigator.share({title:'DCA Calculator',text:shareText+'\nhttps://whatif.wtf',files:[new File([blob],'dca-result.png',{type:'image/png'})]}).catch(()=>dlImg(url));
     } else { dlImg(url); }

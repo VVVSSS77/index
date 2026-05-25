@@ -1302,7 +1302,7 @@ function generateShareCard(R) {
   canvas.toBlob(blob=>{
     const url=URL.createObjectURL(blob);
     if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],'whatif.png',{type:'image/png'})]})){
-      navigator.share({title:'WHAT IF',text:`ลงทุน ${fmtTHB(R.amt)} ใน ${R.a.name} เมื่อ ${Math.round(R.years)} ปีที่แล้ว → ${fmtTHBFull(R.curVal)} บาทวันนี้\n\nลองเล่นเองที่ WHATIF.WTF 🚀\nhttps://whatif.wtf`,files:[new File([blob],'whatif.png',{type:'image/png'})]}).catch(()=>dlImg(url));
+      navigator.share({title:'WHAT IF',text:`ลงทุน ${fmtTHB(R.amt)} ใน ${R.a.name} เมื่อ ${Math.round(R.years)} ปีที่แล้ว → ${fmtTHBFull(R.curVal)} บาทวันนี้\nลองเล่นเองที่ https://whatif.wtf`,files:[new File([blob],'whatif.png',{type:'image/png'})]}).catch(()=>dlImg(url));
     } else { dlImg(url); }
   },'image/png');
 }
