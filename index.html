@@ -7,6 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
 :root {
   --bg: #06060e;
@@ -347,7 +351,7 @@ select.input-field{cursor:pointer;background-image:none;font-family:'Prompt',san
     <span style="font-size:22px;">🏅</span>
     <div>
       <div style="font-size:15px;font-weight:700;color:var(--gold);">ถ้า Bitcoin = Market Cap ทองคำทั้งโลก</div>
-      <div style="font-size:14px;color:var(--text-muted);margin-top:3px;">ทองคำมี Market Cap ~$18 ล้านล้าน USD</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-top:3px;">ทอง��ำมี Market Cap ~$18 ล้านล้าน USD</div>
     </div>
     <div style="margin-left:auto;text-align:right;">
       <div style="font-size:13px;color:var(--text-muted);">เงินคุณจะเป็น</div>
@@ -1081,7 +1085,7 @@ function renderStats(R){
     {
       ico:'🇺🇸',lbl:'ชนะเงินเฟ้อเมกา (3.2%/ปี)',
       val:`${usInflMult.toFixed(2)}× เหนือเงินเฟ้อ`,
-      sub:`มูลค่าที่ควรเป็นตามเงินเฟ้อสหรัฐ ${fmtTHB(usInflVal)}`,
+      sub:`ม���ลค่าที่ควรเป็นตามเงินเฟ้อสหรัฐ ${fmtTHB(usInflVal)}`,
       col: usInflMult>=1?'var(--green)':'var(--red)',
     },
     {
@@ -1144,7 +1148,7 @@ function renderStats(R){
     {
       ico:'🎯',lbl:'Best Year / Worst Year',
       val:`+${R.bestYrPct.toFixed(1)}% / ${R.worstYrPct.toFixed(1)}%`,
-      sub:`ปีที่ดีที่สุด: ${R.bestYr} (+${R.bestYrPct.toFixed(1)}%) | ปีที่แย่: ${R.worstYr} (${R.worstYrPct.toFixed(1)}%)`,
+      sub:`ปีที่ดีที่สุด: ${R.bestYr} (+${R.bestYrPct.toFixed(1)}%) | ปีที��แย่: ${R.worstYr} (${R.worstYrPct.toFixed(1)}%)`,
       col:'var(--gold)',
     },
   ];
