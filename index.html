@@ -884,16 +884,24 @@ async function doCalc(){
       if(spCloses?.length>=2) sp500Val = amt*(spCloses.slice(-1)[0]/spCloses[0]);
     } catch {}
 
-    // ===== GOLD PRICE — use Binance PAXGUSDT (Pax Gold, 1 token = 1 troy oz) =====
-    let goldGramTHB = 3800;
+    // ===== GOLD PRICE — current + historical at buyDate =====
+    let goldGramTHB = 3800;       // ราคาทองปัจจุบัน (฿/กรัม)
+    let goldGramAtBuyTHB = 3800;  // ราคาทองวันที่เลือก (฿/กรัม)
     try {
-      const gTicker = await bnFetch('/api/v3/ticker/price?symbol=PAXGUSDT');
-      if(gTicker?.price) goldGramTHB = parseFloat(gTicker.price) * S.usdThb / 31.1035;
+      setLoading('กำลังดึงราคาทองคำ...');
+      const gData = await yahooFetch('GC=F', Math.floor(buyDate/1000)-86400, Math.floor(Date.now()/1000));
+      const gCloses = gData.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(Boolean);
+      const gAll = gData.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [];
+      if(gCloses?.length){
+        goldGramTHB = gCloses[gCloses.length-1] * S.usdThb / 31.1035;
+        // ราคาทองวันที่ซื้อ = close แรกที่มีค่าในช่วงนั้น
+        goldGramAtBuyTHB = gCloses[0] * S.usdThb / 31.1035;
+      }
     } catch {
       try {
-        const gData = await yahooFetch('GC=F', Math.floor(Date.now()/1000)-172800, Math.floor(Date.now()/1000));
-        const gCloses = gData.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(Boolean);
-        if(gCloses?.length) goldGramTHB = gCloses.slice(-1)[0] * S.usdThb / 31.1035;
+        const gTicker = await bnFetch('/api/v3/ticker/price?symbol=PAXGUSDT');
+        if(gTicker?.price) goldGramTHB = parseFloat(gTicker.price) * S.usdThb / 31.1035;
+        goldGramAtBuyTHB = goldGramTHB; // fallback: ใช้ราคาปัจจุบันแทน
       } catch {}
     }
 
@@ -971,7 +979,7 @@ async function doCalc(){
     const R = {
       a,amt,dateStr,coins,histPriceTHB,curPriceTHB,athPriceTHB,curMcapUSD,
       curVal,pnlAmt,pnlPct,mult,years,cagr,dailyRet,
-      sp500Val,goldGramTHB,
+      sp500Val,goldGramTHB,goldGramAtBuyTHB,
       worstDayPct,bestYrPct,worstYrPct,bestYr,worstYr,
       dcaVal,lateVal,targetMcapResult:null,
       outperfPct,inflMult,days,inflVal,
@@ -1005,13 +1013,13 @@ function renderResults(R){
   setTimeout(()=>res.scrollIntoView({behavior:'smooth',block:'start'}),80);
 
   // Hero
-  document.getElementById('rInv').textContent = fmtTHB(R.amt);
-  animNum('rNow',0,R.curVal,2200,fmtTHB);
+  document.getElementById('rInv').textContent = fmtTHBFull(R.amt);
+  animNum('rNow',0,R.curVal,2200,fmtTHBFull);
 
   const pnlEl = document.getElementById('rPnl');
   const isP = R.pnlPct>=0;
   pnlEl.className = 'pnl-badge '+(isP?'profit':'loss');
-  pnlEl.innerHTML = `${isP?'▲':'▼'} ${fmtTHB(Math.abs(R.pnlAmt))} (${isP?'+':''}${R.pnlPct.toFixed(2)}%)`;
+  pnlEl.innerHTML = `${isP?'▲':'▼'} ${fmtTHBFull(Math.abs(R.pnlAmt))} (${isP?'+':''}${R.pnlPct.toFixed(2)}%)`;
 
   document.getElementById('rCoins').innerHTML =
     `<span style="color:var(--gold);font-weight:600">ซื้อได้ ${fmtCoins(R.coins)} ${R.a.symbol}</span>`+
@@ -1039,12 +1047,11 @@ function renderResults(R){
 }
 
 function renderStats(R){
-  const THAI_GOLD_BAHT = 15.244; // 1 บาทน้ำหนัก = 15.244 กรัม
-  const goldAtPurchase = R.amt / (R.goldGramTHB * (R.curPriceTHB/R.histPriceTHB > 0 ? 1 : 1)); 
-  // Gold at purchase date: approximate using ratio of gold price change
-  // Use amt / goldGramTHB_at_purchase — estimate: goldGramTHB * (histPriceTHB/curPriceTHB) as rough proxy
-  const goldGramAtPurchase = R.goldGramTHB * (R.histPriceTHB / R.curPriceTHB);
-  const goldBahtWeight = R.amt / (goldGramAtPurchase * THAI_GOLD_BAHT);
+  const THAI_GOLD_BAHT = 15.244;
+  // ซื้อทองวันที่เลือก → กรัมที่ได้ → มูลค่าทองวันนี้
+  const goldGramsBought = R.amt / R.goldGramAtBuyTHB;
+  const goldValueNow = goldGramsBought * R.goldGramTHB;
+  const goldBahtWeight = goldGramsBought / THAI_GOLD_BAHT;
 
   const condos = R.curVal/CONDO_BKK;
   const houses = R.curVal/HOUSE_BKK;
@@ -1079,8 +1086,8 @@ function renderStats(R){
     },
     {
       ico:'🥇',lbl:`ถ้าเอาเงินก้อนนี้ไปซื้อทองวันที่เลือก`,
-      val:`${goldBahtWeight.toFixed(2)} บาท`,
-      sub:`(บาทน้ำหนักทอง 15.244 กรัม/บาท) ที่ราคา ≈ ${fmtTHB(goldGramAtPurchase)}/กรัม`,
+      val:fmtTHBFull(goldValueNow),
+      sub:`ซื้อได้ ${goldBahtWeight.toFixed(2)} บาท (${goldGramsBought.toFixed(2)} กรัม) ที่ราคา ${fmtTHB(R.goldGramAtBuyTHB)}/กรัม → ตอนนี้มูลค่า ${fmtTHBFull(goldValueNow)} บาท`,
       col:'var(--gold)',
     },
     {
