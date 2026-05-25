@@ -1263,10 +1263,14 @@ function generateShareCard(R) {
   ctx.fillStyle='#8888aa';ctx.font='400 28px sans-serif';ctx.fillText('ลงทุนไป',W/2,256);
   ctx.fillStyle='#c0c0d8';ctx.font='600 46px monospace';ctx.fillText(fmtTHB(R.amt),W/2,314);
   ctx.fillStyle='#f5c518';ctx.font='52px sans-serif';ctx.fillText('↓',W/2,382);
-  ctx.fillStyle='#8888aa';ctx.font='400 28px sans-serif';ctx.fillText('กลายเป็น',W/2,436);
+  ctx.fillStyle='#8888aa';ctx.font='400 28px sans-serif';
+  ctx.fillText(`กลายเป็น  (เมื่อ ${Math.round(R.years)} ปีที่แล้ว)`,W/2,436);
   const vGrad=ctx.createLinearGradient(100,0,980,0);
   vGrad.addColorStop(0,'#f5c518');vGrad.addColorStop(1,'#fff7c2');
-  ctx.fillStyle=vGrad;ctx.font='bold 104px monospace';ctx.fillText(fmtTHB(R.curVal),W/2,552);
+  ctx.fillStyle=vGrad;
+  const nowFull = fmtTHBFull(R.curVal);
+  const fontSize = nowFull.length > 14 ? 72 : nowFull.length > 10 ? 88 : 104;
+  ctx.font=`bold ${fontSize}px monospace`;ctx.fillText(nowFull,W/2,552);
   const isP=R.pnlPct>=0;
   ctx.fillStyle=isP?'rgba(0,230,118,0.15)':'rgba(255,61,87,0.15)';
   srRect(ctx,W/2-250,578,500,70,35);ctx.fill();
@@ -1290,7 +1294,7 @@ function generateShareCard(R) {
   canvas.toBlob(blob=>{
     const url=URL.createObjectURL(blob);
     if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],'whatif.png',{type:'image/png'})]})){
-      navigator.share({title:'WHAT IF',text:`ลงทุน ${fmtTHB(R.amt)} ใน ${R.a.name} → ${fmtTHB(R.curVal)}`,files:[new File([blob],'whatif.png',{type:'image/png'})]}).catch(()=>dlImg(url));
+      navigator.share({title:'WHAT IF',text:`ลงทุน ${fmtTHB(R.amt)} ใน ${R.a.name} เมื่อ ${Math.round(R.years)} ปีที่แล้ว → ${fmtTHBFull(R.curVal)} บาทวันนี้`,files:[new File([blob],'whatif.png',{type:'image/png'})]}).catch(()=>dlImg(url));
     } else { dlImg(url); }
   },'image/png');
 }
@@ -1311,6 +1315,12 @@ function animNum(id, from, to, duration, formatter){
 }
 
 // ========== FORMATTERS ==========
+function fmtTHBFull(n){
+  // แสดงเลขเต็มทุกหลัก ไม่ย่อ M/B (ยกเว้น ≥ พันล้าน)
+  if(Math.abs(n)>=1e12) return `฿${(n/1e12).toFixed(2)}T`;
+  if(Math.abs(n)>=1e9) return `฿${Math.round(n).toLocaleString('th-TH')}`;
+  return `฿${Math.round(n).toLocaleString('th-TH')}`;
+}
 function fmtTHB(n){
   if(n===null||n===undefined) return '—';
   if(Math.abs(n)>=1e12) return `฿${(n/1e12).toFixed(2)}T`;
